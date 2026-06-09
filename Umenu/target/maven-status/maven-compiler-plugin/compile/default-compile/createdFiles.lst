@@ -27,6 +27,7 @@ com/ultra/umenu/module/ModuleType.class
 com/ultra/umenu/menu/ShopMenu.class
 com/ultra/umenu/menu/ShopMenu$1ShopCategory.class
 com/ultra/umenu/command/MenuCommand.class
+com/ultra/umenu/menu/WarpMenu.class
 com/ultra/umenu/menu/MainMenu.class
 com/ultra/umenu/menu/MenuManager.class
 com/ultra/umenu/manager/CollectionManager$PlayerCollectionData.class

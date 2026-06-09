@@ -1,0 +1,11 @@
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/USkillPlugin.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/api/USkillAPI.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/api/USkillProvider.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/cooldown/CooldownManager.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/effect/PotionAuraManager.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/effect/PotionEffectHelper.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/execution/SkillExecutor.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/model/Skill.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/model/SkillAction.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/model/SkillCondition.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/model/SkillTrigger.java

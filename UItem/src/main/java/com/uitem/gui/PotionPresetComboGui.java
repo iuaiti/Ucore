@@ -2,8 +2,9 @@ package com.uitem.gui;
 
 import com.uitem.UItemData;
 import com.uitem.UItemPlugin;
-import com.uitem.legacy.skill.Skill;
-import com.uitem.legacy.skill.PotionEffectHelper;
+import com.uitem.legacy.skill.SkillDataHelper;
+import com.ultra.uskill.model.Skill;
+import com.ultra.uskill.effect.PotionEffectHelper;
 import com.uitem.util.TextUtil;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -108,6 +109,7 @@ public class PotionPresetComboGui extends AbstractGui {
 
     private void confirmAddPreset(PotionEffectHelper.PotionPreset preset) {
         PotionEffectHelper.addPresetToSkill(skill, preset);
+        SkillDataHelper.mergeSkill(itemData, skill);
 
         plugin.getItemManager().registerItem(itemData);
         plugin.getStorageManager().saveAllDebounced(plugin.getItemManager());

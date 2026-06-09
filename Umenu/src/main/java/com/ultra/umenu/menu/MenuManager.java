@@ -1,7 +1,6 @@
 package com.ultra.umenu.menu;
 
 import com.ultra.ucore.api.UCoreAPI;
-import com.ultra.ucore.gui.GuiManager;
 import com.ultra.umenu.UMenuPlugin;
 import com.ultra.umenu.manager.*;
 import com.ultra.umenu.model.MenuItemLoader;
@@ -41,13 +40,11 @@ public final class MenuManager {
         menus.put("quest", new QuestMenu(plugin, this, questManager));
         menus.put("boss", new BossMenu(plugin, this, bossManager));
         menus.put("crates", new CrateMenu(plugin, this));
+        menus.put("warp", new WarpMenu(plugin, this));
         menus.put("shop", new ShopMenu(plugin, this));
         menus.put("collection", new CollectionMenu(plugin, this, collectionManager));
         menus.put("settings", new SettingsMenu(plugin, this, settingsManager));
         menus.put("server-info", new ServerInfoMenu(plugin, this));
-
-        GuiManager guiManager = UCoreAPI.getGuiManager();
-        guiManager.register();
     }
 
     public void openMain(Player player) {
@@ -80,8 +77,6 @@ public final class MenuManager {
 
     public void reload() {
         itemLoader.reload();
-        for (BaseMenu menu : menus.values()) {
-        }
         closeAll();
     }
 

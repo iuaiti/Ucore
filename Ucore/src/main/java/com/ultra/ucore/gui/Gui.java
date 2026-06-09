@@ -30,6 +30,12 @@ public class Gui implements InventoryHolder {
         return this;
     }
 
+    public Gui clearButton(int slot) {
+        buttons.remove(slot);
+        inventory.setItem(slot, null);
+        return this;
+    }
+
     public void open(Player player) {
         player.openInventory(inventory);
     }
@@ -37,7 +43,14 @@ public class Gui implements InventoryHolder {
     public void handleClick(InventoryClickEvent event) {
         int rawSlot = event.getRawSlot();
 
-        if (rawSlot < 0 || rawSlot >= inventory.getSize()) {
+        if (rawSlot < 0) {
+            return;
+        }
+
+        if (rawSlot >= inventory.getSize()) {
+            if (event.isShiftClick()) {
+                event.setCancelled(true);
+            }
             return;
         }
 

@@ -27,6 +27,7 @@ public final class MenuCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage("§cYou do not have permission to reload UMenu.");
                 return true;
             }
+            plugin.getConfigManager().reloadAll();
             menuManager.reload();
             plugin.reloadConfig();
             sender.sendMessage("§aUMenu has been reloaded.");
@@ -55,7 +56,7 @@ public final class MenuCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return List.of("reload", "main", "profile", "quest", "boss", "crates", "shop", "collection", "settings", "server-info");
+            return List.of("reload", "main", "profile", "quest", "boss", "crates", "warp", "shop", "collection", "settings", "server-info");
         }
         return List.of();
     }

@@ -16,6 +16,7 @@
 /workspaces/Ucore/Umenu/src/main/java/com/ultra/umenu/menu/ServerInfoMenu.java
 /workspaces/Ucore/Umenu/src/main/java/com/ultra/umenu/menu/SettingsMenu.java
 /workspaces/Ucore/Umenu/src/main/java/com/ultra/umenu/menu/ShopMenu.java
+/workspaces/Ucore/Umenu/src/main/java/com/ultra/umenu/menu/WarpMenu.java
 /workspaces/Ucore/Umenu/src/main/java/com/ultra/umenu/model/MenuItem.java
 /workspaces/Ucore/Umenu/src/main/java/com/ultra/umenu/model/MenuItemLoader.java
 /workspaces/Ucore/Umenu/src/main/java/com/ultra/umenu/module/ModuleDetector.java

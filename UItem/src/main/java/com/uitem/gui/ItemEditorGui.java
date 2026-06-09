@@ -2,6 +2,7 @@ package com.uitem.gui;
 
 import com.uitem.UItemData;
 import com.uitem.UItemPlugin;
+import com.uitem.legacy.skill.SkillDataHelper;
 import com.uitem.legacy.skill.gui.SkillListGui;
 import com.uitem.rarity.RarityConfig;
 import com.uitem.util.Messages;
@@ -436,7 +437,7 @@ public class ItemEditorGui extends AbstractGui {
         }
 
         // === SKILLS & PASSIVES (Native UItem system - dễ và ổn định hơn ExecutableItems) ===
-        int skillCount = (data.getSkills() != null) ? data.getSkills().size() : 0;
+        int skillCount = SkillDataHelper.skillCount(data);
         setItem(26, createItem(Material.ENCHANTED_BOOK,
                 "<light_purple><bold>⚡ Kỹ Năng & Passive (UItem)</bold>",
                 List.of(
@@ -526,7 +527,11 @@ public class ItemEditorGui extends AbstractGui {
                         newData.setModel(data.getModel());
                         for (UItemData.AttributeData a : data.getAttributes()) newData.getAttributes().add(a.copy());
                         for (UItemData.ItemEffect e : data.getEffects()) newData.getEffects().add(e.copy());
-                        for (com.uitem.legacy.skill.Skill s : data.getSkills()) newData.getSkills().add(s.copy());
+                        java.util.List<com.ultra.uskill.model.Skill> clonedSkills = new java.util.ArrayList<>();
+                        for (com.ultra.uskill.model.Skill s : SkillDataHelper.getSkills(data)) {
+                            clonedSkills.add(s.copy());
+                        }
+                        SkillDataHelper.setSkills(newData, clonedSkills);
 
                         plugin.getItemManager().registerItem(newData);
                         plugin.getResourcePackManager().syncCmdsToLiveItems();

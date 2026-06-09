@@ -37,14 +37,27 @@ public final class SqlUserRepository implements UserRepository {
     @Override
     public CompletableFuture<Void> saveUser(UUID uuid, String name) {
         return databaseManager.executeAsync(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("""
-                    INSERT INTO ucore_users(uuid, name)
-                    VALUES(?, ?)
-                    ON CONFLICT(uuid) DO UPDATE SET name = excluded.name
+            String uuidString = uuid.toString();
+
+            try (PreparedStatement update = connection.prepareStatement("""
+                    UPDATE ucore_users SET name = ? WHERE uuid = ?
                     """)) {
-                statement.setString(1, uuid.toString());
-                statement.setString(2, name);
-                statement.executeUpdate();
+                update.setString(1, name);
+                update.setString(2, uuidString);
+
+                if (update.executeUpdate() > 0) {
+                    return null;
+                }
+            } catch (Exception exception) {
+                throw new RuntimeException(exception);
+            }
+
+            try (PreparedStatement insert = connection.prepareStatement("""
+                    INSERT INTO ucore_users(uuid, name) VALUES(?, ?)
+                    """)) {
+                insert.setString(1, uuidString);
+                insert.setString(2, name);
+                insert.executeUpdate();
                 return null;
             } catch (Exception exception) {
                 throw new RuntimeException(exception);

@@ -1,7 +1,7 @@
 package com.uitem.util;
 
 import com.uitem.UItemPlugin;
-import com.uitem.legacy.skill.SkillAction;
+import com.ultra.uskill.model.SkillAction;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.Locale;

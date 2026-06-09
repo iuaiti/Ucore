@@ -406,72 +406,10 @@ public class StorageManager {
             data.setEffects(effs);
         }
 
-        // skills: native UItem skill/passive system (giống ExecutableItems nhưng dễ và ổn định hơn)
+        // skills: stored raw — parsed by USkillAPI when needed
         ConfigurationSection skillsSec = s.getConfigurationSection("skills");
         if (skillsSec != null) {
-            List<com.uitem.legacy.skill.Skill> skillList = new ArrayList<>();
-            for (String skey : skillsSec.getKeys(false)) {
-                ConfigurationSection ss = skillsSec.getConfigurationSection(skey);
-                if (ss == null) continue;
-
-                com.uitem.legacy.skill.Skill sk = new com.uitem.legacy.skill.Skill(skey);
-                sk.setDisplayName(ss.getString("display-name", skey));
-                sk.setTrigger(com.uitem.legacy.skill.SkillTrigger.fromString(ss.getString("trigger", "RIGHT_CLICK")));
-                sk.setCooldown(ss.getDouble("cooldown", 0.0));
-                sk.setCancelEvent(ss.getBoolean("cancel-event", true));
-                sk.setChance(ss.getDouble("chance", 100.0));
-                sk.setPeriodTicks(ss.getInt("period-ticks", 20));
-
-                // conditions
-                ConfigurationSection condSec = ss.getConfigurationSection("conditions");
-                if (condSec != null) {
-                    List<com.uitem.legacy.skill.SkillCondition> conds = new ArrayList<>();
-                    for (String ck : condSec.getKeys(false)) {
-                        ConfigurationSection cs = condSec.getConfigurationSection(ck);
-                        if (cs == null) continue;
-                        com.uitem.legacy.skill.SkillCondition c = new com.uitem.legacy.skill.SkillCondition();
-                        String ctype = cs.getString("type", "ALWAYS");
-                        try {
-                            c.setType(com.uitem.legacy.skill.SkillCondition.ConditionType.valueOf(ctype.toUpperCase(Locale.ROOT)));
-                        } catch (Exception e) {
-                            c.setType(com.uitem.legacy.skill.SkillCondition.ConditionType.ALWAYS);
-                        }
-                        // copy all other keys as params
-                        for (String pk : cs.getKeys(false)) {
-                            if ("type".equals(pk)) continue;
-                            c.setParam(pk, cs.get(pk));
-                        }
-                        conds.add(c);
-                    }
-                    sk.setConditions(conds);
-                }
-
-                // actions
-                ConfigurationSection actSec = ss.getConfigurationSection("actions");
-                if (actSec != null) {
-                    List<com.uitem.legacy.skill.SkillAction> acts = new ArrayList<>();
-                    for (String ak : actSec.getKeys(false)) {
-                        ConfigurationSection as = actSec.getConfigurationSection(ak);
-                        if (as == null) continue;
-                        String atype = as.getString("type", "MESSAGE");
-                        com.uitem.legacy.skill.SkillAction a = new com.uitem.legacy.skill.SkillAction();
-                        try {
-                            a.setType(com.uitem.legacy.skill.SkillAction.ActionType.valueOf(atype.toUpperCase(Locale.ROOT)));
-                        } catch (Exception e) {
-                            a.setType(com.uitem.legacy.skill.SkillAction.ActionType.MESSAGE);
-                        }
-                        for (String pk : as.getKeys(false)) {
-                            if ("type".equals(pk)) continue;
-                            a.setParam(pk, as.get(pk));
-                        }
-                        acts.add(a);
-                    }
-                    sk.setActions(acts);
-                }
-
-                skillList.add(sk);
-            }
-            data.setSkills(skillList);
+            data.setSkillsRaw(sectionToMap(skillsSec));
         }
 
         if (hasWarning) {
@@ -613,47 +551,9 @@ public class StorageManager {
             }
         }
 
-        // Skills (native skill/passive system) - full copy of serialization logic for individual files
-        if (d.getSkills() != null && !d.getSkills().isEmpty()) {
-            for (int i = 0; i < d.getSkills().size(); i++) {
-                com.uitem.legacy.skill.Skill sk = d.getSkills().get(i);
-                String sp = id + ".skills." + (sk.getId() != null ? sk.getId() : "skill" + i);
-
-                if (sk.getDisplayName() != null) cfg.set(sp + ".display-name", sk.getDisplayName());
-                if (sk.getTrigger() != null) cfg.set(sp + ".trigger", sk.getTrigger().name());
-                if (sk.getCooldown() > 0) cfg.set(sp + ".cooldown", sk.getCooldown());
-                cfg.set(sp + ".cancel-event", sk.isCancelEvent());
-                if (sk.getChance() < 100) cfg.set(sp + ".chance", sk.getChance());
-                if (sk.getPeriodTicks() != 20) cfg.set(sp + ".period-ticks", sk.getPeriodTicks());
-
-                // conditions
-                if (sk.getConditions() != null && !sk.getConditions().isEmpty()) {
-                    for (int ci = 0; ci < sk.getConditions().size(); ci++) {
-                        com.uitem.legacy.skill.SkillCondition c = sk.getConditions().get(ci);
-                        String cp = sp + ".conditions.c" + ci;
-                        if (c.getType() != null) cfg.set(cp + ".type", c.getType().name());
-                        if (c.getParams() != null) {
-                            for (Map.Entry<String, Object> pe : c.getParams().entrySet()) {
-                                cfg.set(cp + "." + pe.getKey(), pe.getValue());
-                            }
-                        }
-                    }
-                }
-
-                // actions
-                if (sk.getActions() != null && !sk.getActions().isEmpty()) {
-                    for (int ai = 0; ai < sk.getActions().size(); ai++) {
-                        com.uitem.legacy.skill.SkillAction a = sk.getActions().get(ai);
-                        String ap = sp + ".actions.a" + ai;
-                        if (a.getType() != null) cfg.set(ap + ".type", a.getType().name());
-                        if (a.getParams() != null) {
-                            for (Map.Entry<String, Object> pe : a.getParams().entrySet()) {
-                                cfg.set(ap + "." + pe.getKey(), pe.getValue());
-                            }
-                        }
-                    }
-                }
-            }
+        // Skills — stored/loaded as raw data (no USkill model dependency)
+        if (d.getSkillsRaw() != null && !d.getSkillsRaw().isEmpty()) {
+            cfg.set(id + ".skills", d.getSkillsRaw());
         }
 
         // Effects, integrations, model, rarity...
@@ -772,47 +672,9 @@ public class StorageManager {
                 }
             }
 
-            // Skills (native skill/passive system)
-            if (d.getSkills() != null && !d.getSkills().isEmpty()) {
-                for (int i = 0; i < d.getSkills().size(); i++) {
-                    com.uitem.legacy.skill.Skill sk = d.getSkills().get(i);
-                    String sp = path + ".skills." + (sk.getId() != null ? sk.getId() : "skill" + i);
-
-                    if (sk.getDisplayName() != null) config.set(sp + ".display-name", sk.getDisplayName());
-                    if (sk.getTrigger() != null) config.set(sp + ".trigger", sk.getTrigger().name());
-                    if (sk.getCooldown() > 0) config.set(sp + ".cooldown", sk.getCooldown());
-                    config.set(sp + ".cancel-event", sk.isCancelEvent());
-                    if (sk.getChance() < 100) config.set(sp + ".chance", sk.getChance());
-                    if (sk.getPeriodTicks() != 20) config.set(sp + ".period-ticks", sk.getPeriodTicks());
-
-                    // conditions
-                    if (sk.getConditions() != null && !sk.getConditions().isEmpty()) {
-                        for (int ci = 0; ci < sk.getConditions().size(); ci++) {
-                            com.uitem.legacy.skill.SkillCondition c = sk.getConditions().get(ci);
-                            String cp = sp + ".conditions.c" + ci;
-                            if (c.getType() != null) config.set(cp + ".type", c.getType().name());
-                            if (c.getParams() != null) {
-                                for (Map.Entry<String, Object> pe : c.getParams().entrySet()) {
-                                    config.set(cp + "." + pe.getKey(), pe.getValue());
-                                }
-                            }
-                        }
-                    }
-
-                    // actions
-                    if (sk.getActions() != null && !sk.getActions().isEmpty()) {
-                        for (int ai = 0; ai < sk.getActions().size(); ai++) {
-                            com.uitem.legacy.skill.SkillAction a = sk.getActions().get(ai);
-                            String ap = sp + ".actions.a" + ai;
-                            if (a.getType() != null) config.set(ap + ".type", a.getType().name());
-                            if (a.getParams() != null) {
-                                for (Map.Entry<String, Object> pe : a.getParams().entrySet()) {
-                                    config.set(ap + "." + pe.getKey(), pe.getValue());
-                                }
-                            }
-                        }
-                    }
-                }
+            // Skills — stored/loaded as raw data
+            if (d.getSkillsRaw() != null && !d.getSkillsRaw().isEmpty()) {
+                config.set(path + ".skills", d.getSkillsRaw());
             }
         }
 
@@ -918,6 +780,24 @@ public class StorageManager {
 
     private void logError(String fmt, Object... args) {
         plugin.getLogger().warning("[ERROR] " + String.format(fmt, args));
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    //  Helpers
+    // ═════════════════════════════════════════════════════════════════════════
+
+    /** Recursively convert a ConfigurationSection to a plain Map<String, Object>. */
+    private static Map<String, Object> sectionToMap(ConfigurationSection section) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        for (String key : section.getKeys(false)) {
+            Object value = section.get(key);
+            if (value instanceof ConfigurationSection nested) {
+                result.put(key, sectionToMap(nested));
+            } else {
+                result.put(key, value);
+            }
+        }
+        return result;
     }
 
     // ═════════════════════════════════════════════════════════════════════════

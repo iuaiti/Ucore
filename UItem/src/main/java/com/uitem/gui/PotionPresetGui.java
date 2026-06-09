@@ -2,8 +2,9 @@ package com.uitem.gui;
 
 import com.uitem.UItemData;
 import com.uitem.UItemPlugin;
-import com.uitem.legacy.skill.Skill;
-import com.uitem.legacy.skill.SkillAction;
+import com.uitem.legacy.skill.SkillDataHelper;
+import com.ultra.uskill.model.Skill;
+import com.ultra.uskill.model.SkillAction;
 import com.uitem.util.PotionEffectRegistry;
 import com.uitem.util.TextUtil;
 import org.bukkit.Material;
@@ -136,6 +137,7 @@ public class PotionPresetGui extends AbstractGui {
     private void addPotionAction(PotionEffectRegistry.PotionInfo info, int duration, int amplifier) {
         SkillAction action = SkillAction.givePotion(info.key, duration, amplifier);
         skill.addAction(action);
+        SkillDataHelper.mergeSkill(itemData, skill);
 
         plugin.getItemManager().registerItem(itemData);
         plugin.getStorageManager().saveAllDebounced(plugin.getItemManager());

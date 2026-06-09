@@ -1,10 +1,8 @@
 package com.ultra.umenu.menu;
 
-import com.ultra.ucore.api.UCoreAPI;
 import com.ultra.ucore.config.ConfigManager;
 import com.ultra.ucore.gui.Button;
 import com.ultra.ucore.gui.Gui;
-import com.ultra.ucore.gui.GuiManager;
 import com.ultra.ucore.item.ItemBuilder;
 import com.ultra.umenu.UMenuPlugin;
 import com.ultra.umenu.model.MenuItemLoader;
@@ -79,9 +77,10 @@ public abstract class BaseMenu {
     protected void addConfigItems(Gui gui, String menuKey, Player player) {
         var config = configManager.get("menus.yml");
         String itemsKey = menuKey + ".items";
-        if (!config.contains(itemsKey)) return;
+        var section = config.getConfigurationSection(itemsKey);
+        if (section == null) return;
 
-        for (String itemKey : config.getConfigurationSection(itemsKey).getKeys(false)) {
+        for (String itemKey : section.getKeys(false)) {
             String path = itemsKey + "." + itemKey;
             int slot = config.getInt(path + ".slot", 0);
             String itemRef = config.getString(path + ".item", "stone");
@@ -92,6 +91,8 @@ public abstract class BaseMenu {
             Consumer<org.bukkit.event.inventory.InventoryClickEvent> clickHandler = switch (action.toUpperCase()) {
                 case "OPEN_MENU" -> event -> menuManager.open((Player) event.getWhoClicked(), target);
                 case "BACK" -> event -> menuManager.open((Player) event.getWhoClicked(), target);
+                case "WARP" -> event -> warp((Player) event.getWhoClicked(), target);
+                case "COMMAND" -> event -> runCommand((Player) event.getWhoClicked(), target);
                 case "CLOSE" -> event -> event.getWhoClicked().closeInventory();
                 default -> null;
             };
@@ -110,6 +111,26 @@ public abstract class BaseMenu {
         ItemStack closeItem = itemLoader.build("close", null);
         gui.setButton(slot, new Button(closeItem, event ->
                 event.getWhoClicked().closeInventory()));
+    }
+
+    protected void warp(Player player, String warpName) {
+        if (warpName == null || warpName.isBlank()) {
+            player.sendMessage("§cWarp target is not configured.");
+            return;
+        }
+
+        player.closeInventory();
+        player.performCommand("warp " + warpName.trim());
+    }
+
+    protected void runCommand(Player player, String command) {
+        if (command == null || command.isBlank()) {
+            player.sendMessage("§cCommand target is not configured.");
+            return;
+        }
+
+        player.closeInventory();
+        player.performCommand(command.startsWith("/") ? command.substring(1) : command);
     }
 
     protected boolean isModuleEnabled(ModuleType type) {

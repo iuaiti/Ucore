@@ -1,0 +1,17 @@
+com/ultra/uskill/model/SkillAction.class
+com/ultra/uskill/USkillPlugin.class
+com/ultra/uskill/model/SkillTrigger.class
+com/ultra/uskill/execution/SkillExecutor$1.class
+com/ultra/uskill/execution/SkillExecutor.class
+com/ultra/uskill/api/USkillAPI.class
+com/ultra/uskill/cooldown/CooldownManager.class
+com/ultra/uskill/effect/PotionAuraManager$AuraPresets.class
+com/ultra/uskill/effect/PotionEffectHelper$PotionEffectCombo.class
+com/ultra/uskill/effect/PotionEffectHelper$PotionPreset.class
+com/ultra/uskill/model/SkillCondition$ConditionType.class
+com/ultra/uskill/effect/PotionAuraManager.class
+com/ultra/uskill/effect/PotionEffectHelper.class
+com/ultra/uskill/model/SkillCondition.class
+com/ultra/uskill/api/USkillProvider.class
+com/ultra/uskill/model/SkillAction$ActionType.class
+com/ultra/uskill/model/Skill.class

@@ -3,8 +3,9 @@ package com.uitem.legacy.skill.gui;
 import com.uitem.UItemData;
 import com.uitem.gui.AbstractGui;
 import com.uitem.UItemPlugin;
-import com.uitem.legacy.skill.Skill;
-import com.uitem.legacy.skill.SkillTrigger;
+import com.uitem.legacy.skill.SkillDataHelper;
+import com.ultra.uskill.model.Skill;
+import com.ultra.uskill.model.SkillTrigger;
 import com.uitem.util.Messages;
 import com.uitem.util.TextUtil;
 import org.bukkit.Material;
@@ -49,19 +50,20 @@ public class SkillListGui extends AbstractGui {
                         Messages.skillListClickEdit() + " | " + Messages.skillListClickDelete()
                 )));
 
-        // Current skills
-        List<Skill> current = data.getSkills() != null ? new ArrayList<>(data.getSkills()) : new ArrayList<>();
+        // Current skills — parse from raw data
+        List<Skill> skills = SkillDataHelper.getSkills(data);
         int[] slots = {10,11,12,13,14,15,16,17, 19,20,21,22,23,24,25,26};
 
-        for (int i = 0; i < Math.min(current.size(), slots.length); i++) {
+        for (int i = 0; i < Math.min(skills.size(), slots.length); i++) {
             final int idx = i;
-            Skill sk = current.get(i);
+            Skill sk = skills.get(i);
             ItemStack icon = buildSkillIcon(sk);
             setItem(slots[i], icon, ev -> {
                 if (ev.isShiftClick() && ev.isRightClick()) {
                     // Shift + Right Click = Xóa
-                    if (idx < data.getSkills().size()) {
-                        data.getSkills().remove(idx);
+                    if (idx < skills.size()) {
+                        skills.remove(idx);
+                        SkillDataHelper.setSkills(data, skills);
                         player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.6f, 1.0f);
                         plugin.getItemManager().registerItem(data);
                         plugin.getStorageManager().saveAllDebounced(plugin.getItemManager());
@@ -69,15 +71,15 @@ public class SkillListGui extends AbstractGui {
                     }
                 } else {
                     // Left Click = Edit
-                    if (idx < data.getSkills().size()) {
+                    if (idx < skills.size()) {
                         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.2f);
-                        new SkillEditorGui(plugin, player, data, data.getSkills().get(idx)).openAsChildOf(this);
+                        new SkillEditorGui(plugin, player, data, skills.get(idx)).openAsChildOf(this);
                     }
                 }
             });
         }
 
-        if (current.isEmpty()) {
+        if (skills.isEmpty()) {
             setItem(10, createItem(Material.BARRIER, "<gray><italic>" + Messages.skillEditorNoActions().replace("action", "skill") + "</italic>",
                     List.of("<yellow>Click button below to add new skill")));
         }
@@ -90,12 +92,13 @@ public class SkillListGui extends AbstractGui {
                 )), ev -> {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
             // Tạo skill trống với ID ngẫu nhiên
-            String newId = "skill_" + (data.getSkills().size() + 1);
+            String newId = "skill_" + (skills.size() + 1);
             Skill newSkill = new Skill(newId);
             newSkill.setTrigger(SkillTrigger.RIGHT_CLICK);
             newSkill.setCooldown(3.0);
             newSkill.setCancelEvent(true);
-            data.getSkills().add(newSkill);
+            skills.add(newSkill);
+            SkillDataHelper.setSkills(data, skills);
 
             plugin.getItemManager().registerItem(data);
             plugin.getStorageManager().saveAllDebounced(plugin.getItemManager());
@@ -155,10 +158,12 @@ public class SkillListGui extends AbstractGui {
         sk.setTrigger(SkillTrigger.RIGHT_CLICK);
         sk.setCooldown(6.0);
         sk.setCancelEvent(true);
-        sk.addAction(com.uitem.legacy.skill.SkillAction.playSound("ENTITY_BLAZE_SHOOT", 1.0f, 1.0f));
-        sk.addAction(com.uitem.legacy.skill.SkillAction.shootProjectile("SMALL_FIREBALL", 1.6, 7.0));
-        sk.addAction(com.uitem.legacy.skill.SkillAction.actionBar("<red>Fireball!"));
-        data.getSkills().add(sk);
+        sk.addAction(com.ultra.uskill.model.SkillAction.playSound("ENTITY_BLAZE_SHOOT", 1.0f, 1.0f));
+        sk.addAction(com.ultra.uskill.model.SkillAction.shootProjectile("SMALL_FIREBALL", 1.6, 7.0));
+        sk.addAction(        com.ultra.uskill.model.SkillAction.actionBar("<red>Fireball!"));
+        List<Skill> allSk = SkillDataHelper.getSkills(data);
+        allSk.add(sk);
+        SkillDataHelper.setSkills(data, allSk);
 
         plugin.getItemManager().registerItem(data);
         plugin.getStorageManager().saveAllDebounced(plugin.getItemManager());
@@ -171,9 +176,11 @@ public class SkillListGui extends AbstractGui {
         sk.setTrigger(SkillTrigger.HIT);
         sk.setCooldown(0);
         sk.setChance(35);
-        sk.addAction(com.uitem.legacy.skill.SkillAction.heal(2.5));
-        sk.addAction(com.uitem.legacy.skill.SkillAction.actionBar("<red>+2.5 HP"));
-        data.getSkills().add(sk);
+        sk.addAction(com.ultra.uskill.model.SkillAction.heal(2.5));
+        sk.addAction(com.ultra.uskill.model.SkillAction.actionBar("<red>+2.5 HP"));
+        List<Skill> allSk = SkillDataHelper.getSkills(data);
+        allSk.add(sk);
+        SkillDataHelper.setSkills(data, allSk);
 
         plugin.getItemManager().registerItem(data);
         plugin.getStorageManager().saveAllDebounced(plugin.getItemManager());
@@ -186,9 +193,11 @@ public class SkillListGui extends AbstractGui {
         sk.setTrigger(SkillTrigger.WHILE_HOLDING);
         sk.setCooldown(4.0); // interval
         sk.setPeriodTicks(20);
-        sk.addAction(com.uitem.legacy.skill.SkillAction.heal(1.0));
-        sk.addAction(com.uitem.legacy.skill.SkillAction.playSound("BLOCK_NOTE_BLOCK_HARP", 0.6f, 1.8f));
-        data.getSkills().add(sk);
+        sk.addAction(com.ultra.uskill.model.SkillAction.heal(1.0));
+        sk.addAction(com.ultra.uskill.model.SkillAction.playSound("BLOCK_NOTE_BLOCK_HARP", 0.6f, 1.8f));
+        List<Skill> allSk = SkillDataHelper.getSkills(data);
+        allSk.add(sk);
+        SkillDataHelper.setSkills(data, allSk);
 
         plugin.getItemManager().registerItem(data);
         plugin.getStorageManager().saveAllDebounced(plugin.getItemManager());

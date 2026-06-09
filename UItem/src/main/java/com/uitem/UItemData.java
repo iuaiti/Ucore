@@ -37,8 +37,8 @@ public class UItemData {
     // General attachable effects (reflect, extra damage on hit/damage/equip/fullset/die)
     private List<ItemEffect> effects = new ArrayList<>();
 
-    // Native UItem Skills & Passives (legacy — imported from legacy.skill)
-    private List<com.uitem.legacy.skill.Skill> skills = new ArrayList<>();
+    // Raw skill data (parsed by USkillAPI when needed — keeps UItem decoupled)
+    private Map<String, Object> skillsRaw = new LinkedHashMap<>();
 
     // Optional custom model reference for resource pack (Oraxen/ItemsAdder style)
     // Can be just name "my_model" -> looks for models/my_model.json and uses uitem:item/my_model
@@ -62,7 +62,7 @@ public class UItemData {
         this.itemsAdderId = null;
         this.executableItemsId = null;
         this.effects = new ArrayList<>();
-        this.skills = new ArrayList<>();
+        this.skillsRaw = new LinkedHashMap<>();
         this.model = null;
     }
 
@@ -192,12 +192,12 @@ public class UItemData {
         this.effects = (effects != null) ? effects : new ArrayList<>();
     }
 
-    public List<com.uitem.legacy.skill.Skill> getSkills() {
-        return skills;
+    public Map<String, Object> getSkillsRaw() {
+        return skillsRaw;
     }
 
-    public void setSkills(List<com.uitem.legacy.skill.Skill> skills) {
-        this.skills = (skills != null) ? skills : new ArrayList<>();
+    public void setSkillsRaw(Map<String, Object> skillsRaw) {
+        this.skillsRaw = (skillsRaw != null) ? skillsRaw : new LinkedHashMap<>();
     }
 
     public String getModel() {
@@ -274,10 +274,7 @@ public class UItemData {
         for (ItemEffect e : this.effects) {
             clone.effects.add(e.copy());
         }
-        clone.skills = new ArrayList<>();
-        for (com.uitem.legacy.skill.Skill s : this.skills) {
-            clone.skills.add(s.copy());
-        }
+        clone.skillsRaw = new LinkedHashMap<>(this.skillsRaw);
         clone.model = this.model;
         return clone;
     }

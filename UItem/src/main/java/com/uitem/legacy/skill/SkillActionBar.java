@@ -3,6 +3,9 @@ package com.uitem.legacy.skill;
 import com.uitem.UItemData;
 import com.uitem.UItemPlugin;
 import com.uitem.api.UItemAPI;
+import com.uitem.legacy.skill.SkillDataHelper;
+import com.ultra.uskill.cooldown.CooldownManager;
+import com.ultra.uskill.model.Skill;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
@@ -67,10 +70,12 @@ public class SkillActionBar {
     private void checkItem(Player player, ItemStack item, List<CooldownEntry> entries) {
         if (!UItemAPI.isAvailable()) return;
         UItemData data = UItemAPI.get().getUItemData(item).orElse(null);
-        if (data == null || data.getSkills() == null) return;
+        if (data == null) return;
+        List<Skill> skills = SkillDataHelper.getSkills(data);
+        if (skills.isEmpty()) return;
         String itemId = data.getId();
 
-        for (Skill skill : data.getSkills()) {
+        for (Skill skill : skills) {
             if (skill.getCooldown() <= 0) continue;
             double remaining = cooldowns.getRemainingSeconds(player, itemId, skill.getId(), skill.getCooldown());
             if (remaining <= 0) continue;

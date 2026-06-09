@@ -1,0 +1,91 @@
+package com.ultra.uskill.effect;
+
+import com.ultra.uskill.model.Skill;
+import com.ultra.uskill.model.SkillAction;
+import com.ultra.uskill.model.SkillTrigger;
+
+import java.util.List;
+
+public class PotionAuraManager {
+
+    public static Skill createAuraPotionSkill(String skillId, String displayName,
+                                               String potionEffect, int amplifier, int intervalSeconds) {
+        Skill skill = new Skill(skillId);
+        skill.setDisplayName(displayName);
+        skill.setTrigger(SkillTrigger.WHILE_HOLDING);
+        skill.setCooldown(0);
+        skill.setPeriodTicks(intervalSeconds * 20);
+
+        SkillAction action = SkillAction.givePotion(potionEffect, intervalSeconds, amplifier);
+        skill.addAction(action);
+
+        return skill;
+    }
+
+    public static Skill createWearingPotionSkill(String skillId, String displayName,
+                                                  String potionEffect, int amplifier, int intervalSeconds) {
+        Skill skill = new Skill(skillId);
+        skill.setDisplayName(displayName);
+        skill.setTrigger(SkillTrigger.WHILE_WEARING);
+        skill.setCooldown(0);
+        skill.setPeriodTicks(intervalSeconds * 20);
+
+        SkillAction action = SkillAction.givePotion(potionEffect, intervalSeconds, amplifier);
+        skill.addAction(action);
+
+        return skill;
+    }
+
+    public static Skill createMultiAuraSkill(String skillId, String displayName,
+                                              List<PotionEffectHelper.PotionEffectCombo> effects,
+                                              int intervalSeconds) {
+        Skill skill = new Skill(skillId);
+        skill.setDisplayName(displayName);
+        skill.setTrigger(SkillTrigger.WHILE_HOLDING);
+        skill.setCooldown(0);
+        skill.setPeriodTicks(intervalSeconds * 20);
+
+        for (PotionEffectHelper.PotionEffectCombo combo : effects) {
+            SkillAction action = SkillAction.givePotion(combo.effectType, intervalSeconds, combo.amplifier);
+            skill.addAction(action);
+        }
+
+        return skill;
+    }
+
+    public static class AuraPresets {
+        public static Skill speedAura(String itemId) {
+            return createAuraPotionSkill(itemId + "_speed_aura",
+                "<aqua>Speed Aura", "SPEED", 0, 5);
+        }
+
+        public static Skill strengthAura(String itemId) {
+            return createAuraPotionSkill(itemId + "_strength_aura",
+                "<red>Strength Aura", "STRENGTH", 0, 5);
+        }
+
+        public static Skill resistanceAura(String itemId) {
+            return createAuraPotionSkill(itemId + "_resistance_aura",
+                "<green>Resistance Aura", "RESISTANCE", 0, 5);
+        }
+
+        public static Skill nightVisionAura(String itemId) {
+            return createAuraPotionSkill(itemId + "_night_vision_aura",
+                "<dark_purple>Night Vision Aura", "NIGHT_VISION", 0, 10);
+        }
+
+        public static Skill regenAura(String itemId) {
+            return createAuraPotionSkill(itemId + "_regen_aura",
+                "<light_purple>Regeneration Aura", "REGENERATION", 0, 4);
+        }
+
+        public static Skill lifeStealerAura(String itemId) {
+            List<PotionEffectHelper.PotionEffectCombo> effects = List.of(
+                new PotionEffectHelper.PotionEffectCombo("STRENGTH", 5, 1),
+                new PotionEffectHelper.PotionEffectCombo("HEALTH_BOOST", 10, 0)
+            );
+            return createMultiAuraSkill(itemId + "_lifesteal_aura",
+                "<red>Lifesteal Aura", effects, 5);
+        }
+    }
+}

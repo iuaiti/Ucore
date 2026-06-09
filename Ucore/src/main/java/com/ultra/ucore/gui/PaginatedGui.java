@@ -39,7 +39,7 @@ public class PaginatedGui extends Gui {
 
     private void renderPage() {
         for (int slot : contentSlots) {
-            getInventory().setItem(slot, null);
+            clearButton(slot);
         }
 
         int start = page * contentSlots.length;

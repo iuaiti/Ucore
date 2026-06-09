@@ -40,15 +40,8 @@
 /workspaces/Ucore/UItem/src/main/java/com/uitem/integration/IntegrationManager.java
 /workspaces/Ucore/UItem/src/main/java/com/uitem/integration/ItemsAdderIntegration.java
 /workspaces/Ucore/UItem/src/main/java/com/uitem/integration/OraxenIntegration.java
-/workspaces/Ucore/UItem/src/main/java/com/uitem/legacy/skill/CooldownManager.java
-/workspaces/Ucore/UItem/src/main/java/com/uitem/legacy/skill/PotionAuraManager.java
-/workspaces/Ucore/UItem/src/main/java/com/uitem/legacy/skill/PotionEffectHelper.java
-/workspaces/Ucore/UItem/src/main/java/com/uitem/legacy/skill/Skill.java
-/workspaces/Ucore/UItem/src/main/java/com/uitem/legacy/skill/SkillAction.java
 /workspaces/Ucore/UItem/src/main/java/com/uitem/legacy/skill/SkillActionBar.java
-/workspaces/Ucore/UItem/src/main/java/com/uitem/legacy/skill/SkillCondition.java
-/workspaces/Ucore/UItem/src/main/java/com/uitem/legacy/skill/SkillExecutor.java
-/workspaces/Ucore/UItem/src/main/java/com/uitem/legacy/skill/SkillTrigger.java
+/workspaces/Ucore/UItem/src/main/java/com/uitem/legacy/skill/SkillDataHelper.java
 /workspaces/Ucore/UItem/src/main/java/com/uitem/legacy/skill/UItemSkillListener.java
 /workspaces/Ucore/UItem/src/main/java/com/uitem/legacy/skill/gui/SkillEditorGui.java
 /workspaces/Ucore/UItem/src/main/java/com/uitem/legacy/skill/gui/SkillListGui.java
