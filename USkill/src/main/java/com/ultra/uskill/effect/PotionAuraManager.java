@@ -1,8 +1,8 @@
 package com.ultra.uskill.effect;
 
-import com.ultra.uskill.model.Skill;
-import com.ultra.uskill.model.SkillAction;
-import com.ultra.uskill.model.SkillTrigger;
+import com.ultra.ucore.skill.Skill;
+import com.ultra.ucore.skill.SkillAction;
+import com.ultra.ucore.skill.SkillTrigger;
 
 import java.util.List;
 

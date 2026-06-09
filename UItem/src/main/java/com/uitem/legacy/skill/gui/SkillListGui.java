@@ -4,8 +4,8 @@ import com.uitem.UItemData;
 import com.uitem.gui.AbstractGui;
 import com.uitem.UItemPlugin;
 import com.uitem.legacy.skill.SkillDataHelper;
-import com.ultra.uskill.model.Skill;
-import com.ultra.uskill.model.SkillTrigger;
+import com.ultra.ucore.skill.Skill;
+import com.ultra.ucore.skill.SkillTrigger;
 import com.uitem.util.Messages;
 import com.uitem.util.TextUtil;
 import org.bukkit.Material;
@@ -158,9 +158,9 @@ public class SkillListGui extends AbstractGui {
         sk.setTrigger(SkillTrigger.RIGHT_CLICK);
         sk.setCooldown(6.0);
         sk.setCancelEvent(true);
-        sk.addAction(com.ultra.uskill.model.SkillAction.playSound("ENTITY_BLAZE_SHOOT", 1.0f, 1.0f));
-        sk.addAction(com.ultra.uskill.model.SkillAction.shootProjectile("SMALL_FIREBALL", 1.6, 7.0));
-        sk.addAction(        com.ultra.uskill.model.SkillAction.actionBar("<red>Fireball!"));
+        sk.addAction(com.ultra.ucore.skill.SkillAction.playSound("ENTITY_BLAZE_SHOOT", 1.0f, 1.0f));
+        sk.addAction(com.ultra.ucore.skill.SkillAction.shootProjectile("SMALL_FIREBALL", 1.6, 7.0));
+        sk.addAction(        com.ultra.ucore.skill.SkillAction.actionBar("<red>Fireball!"));
         List<Skill> allSk = SkillDataHelper.getSkills(data);
         allSk.add(sk);
         SkillDataHelper.setSkills(data, allSk);
@@ -176,8 +176,8 @@ public class SkillListGui extends AbstractGui {
         sk.setTrigger(SkillTrigger.HIT);
         sk.setCooldown(0);
         sk.setChance(35);
-        sk.addAction(com.ultra.uskill.model.SkillAction.heal(2.5));
-        sk.addAction(com.ultra.uskill.model.SkillAction.actionBar("<red>+2.5 HP"));
+        sk.addAction(com.ultra.ucore.skill.SkillAction.heal(2.5));
+        sk.addAction(com.ultra.ucore.skill.SkillAction.actionBar("<red>+2.5 HP"));
         List<Skill> allSk = SkillDataHelper.getSkills(data);
         allSk.add(sk);
         SkillDataHelper.setSkills(data, allSk);
@@ -193,8 +193,8 @@ public class SkillListGui extends AbstractGui {
         sk.setTrigger(SkillTrigger.WHILE_HOLDING);
         sk.setCooldown(4.0); // interval
         sk.setPeriodTicks(20);
-        sk.addAction(com.ultra.uskill.model.SkillAction.heal(1.0));
-        sk.addAction(com.ultra.uskill.model.SkillAction.playSound("BLOCK_NOTE_BLOCK_HARP", 0.6f, 1.8f));
+        sk.addAction(com.ultra.ucore.skill.SkillAction.heal(1.0));
+        sk.addAction(com.ultra.ucore.skill.SkillAction.playSound("BLOCK_NOTE_BLOCK_HARP", 0.6f, 1.8f));
         List<Skill> allSk = SkillDataHelper.getSkills(data);
         allSk.add(sk);
         SkillDataHelper.setSkills(data, allSk);

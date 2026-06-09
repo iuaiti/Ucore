@@ -2,6 +2,7 @@ package com.ultra.umenu.menu;
 
 import com.ultra.ucore.gui.Gui;
 import com.ultra.umenu.UMenuPlugin;
+import com.ultra.umenu.module.ModuleType;
 import org.bukkit.entity.Player;
 
 public final class MainMenu extends BaseMenu {
@@ -23,5 +24,12 @@ public final class MainMenu extends BaseMenu {
     @Override
     protected void build(Gui gui, Player player) {
         addConfigItems(gui, configKey, player);
+
+        if (isModuleEnabled(ModuleType.UITEM)) {
+            addConfigItems(gui, "module-uitem", player);
+        }
+        if (isModuleEnabled(ModuleType.USKILL)) {
+            addConfigItems(gui, "module-uskill", player);
+        }
     }
 }

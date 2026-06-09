@@ -7,6 +7,7 @@ import com.ultra.ucore.gui.GuiManager;
 import com.ultra.ucore.message.MessageManager;
 import com.ultra.ucore.placeholder.PlaceholderManager;
 import com.ultra.ucore.scheduler.SchedulerService;
+import com.ultra.ucore.skill.SkillService;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
@@ -27,6 +28,21 @@ public final class UCoreAPI {
 
     public static void shutdown() {
         SERVICES.set(null);
+    }
+
+    public static void registerSkillService(SkillService skillService) {
+        UCoreServices svc = SERVICES.get();
+        if (svc == null) return;
+        SERVICES.set(new UCoreServices(
+                svc.configManager(),
+                svc.messageManager(),
+                svc.guiManager(),
+                svc.cooldownManager(),
+                svc.databaseManager(),
+                svc.schedulerService(),
+                svc.placeholderManager(),
+                skillService
+        ));
     }
 
     public static UCoreServices services() {
@@ -65,5 +81,9 @@ public final class UCoreAPI {
 
     public static PlaceholderManager getPlaceholderManager() {
         return services().placeholderManager();
+    }
+
+    public static SkillService getSkillService() {
+        return services().skillService();
     }
 }

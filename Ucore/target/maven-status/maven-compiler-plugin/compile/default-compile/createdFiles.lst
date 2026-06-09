@@ -5,6 +5,7 @@ com/ultra/ucore/placeholder/Placeholder.class
 com/ultra/ucore/database/SqlUserRepository.class
 com/ultra/ucore/command/ReloadCommand.class
 com/ultra/ucore/command/SubCommand.class
+com/ultra/ucore/skill/SkillService.class
 com/ultra/ucore/gui/Gui.class
 com/ultra/ucore/gui/Button.class
 com/ultra/ucore/placeholder/PlaceholderManager.class
@@ -15,10 +16,14 @@ com/ultra/ucore/command/CommandManager.class
 com/ultra/ucore/util/LocationUtil.class
 com/ultra/ucore/cooldown/CooldownManager.class
 com/ultra/ucore/scheduler/PaperSchedulerService.class
+com/ultra/ucore/skill/SkillCondition$ConditionType.class
 com/ultra/ucore/placeholder/PlaceholderManager$PlaceholderContext.class
+com/ultra/ucore/skill/SkillCondition.class
 com/ultra/ucore/config/ConfigFile.class
 com/ultra/ucore/database/UserRepository.class
 com/ultra/ucore/gui/PaginatedGui.class
+com/ultra/ucore/skill/SkillAction.class
+com/ultra/ucore/skill/SkillTrigger.class
 com/ultra/ucore/item/ItemBuilder.class
 com/ultra/ucore/UCorePlugin.class
 com/ultra/ucore/scheduler/SchedulerService.class
@@ -27,7 +32,9 @@ com/ultra/ucore/util/TextUtil.class
 com/ultra/ucore/command/UCoreCommand.class
 com/ultra/ucore/listener/PlayerQuitListener.class
 com/ultra/ucore/message/MessageManager.class
+com/ultra/ucore/skill/Skill.class
 com/ultra/ucore/database/DatabaseManager.class
 com/ultra/ucore/util/NumberUtil.class
 com/ultra/ucore/gui/GuiManager.class
 com/ultra/ucore/api/UCoreServices.class
+com/ultra/ucore/skill/SkillAction$ActionType.class

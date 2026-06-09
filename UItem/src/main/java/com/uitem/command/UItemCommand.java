@@ -9,7 +9,6 @@ import com.uitem.util.TextUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -38,11 +37,9 @@ public class UItemCommand implements CommandExecutor, TabCompleter {
     );
 
     private final UItemPlugin plugin;
-    private final MiniMessage miniMessage;
 
     public UItemCommand(UItemPlugin plugin) {
         this.plugin = plugin;
-        this.miniMessage = MiniMessage.miniMessage();
     }
 
     @Override
@@ -282,13 +279,13 @@ public class UItemCommand implements CommandExecutor, TabCompleter {
             UItemData data = entry.getValue();
             String materialName = data.getMaterial() != null ? data.getMaterial().name() : "STONE";
             String displayName = data.getDisplayName() == null ? "<white>" + data.getId() : data.getDisplayName();
-            Component line = miniMessage.deserialize(
+            Component line = com.uitem.util.TextUtil.parse(
                             "<gray>• <white>" + data.getId() +
                                     " <dark_gray>| <gray>" + materialName +
                                     " <dark_gray>| " + displayName)
                     .clickEvent(ClickEvent.runCommand("/ui give " + data.getId()))
                     .hoverEvent(HoverEvent.showText(
-                            miniMessage.deserialize("<yellow>Click to receive this item")));
+                            com.uitem.util.TextUtil.parse("<yellow>Click to receive this item")));
             sender.sendMessage(line);
         }
 
@@ -357,30 +354,30 @@ public class UItemCommand implements CommandExecutor, TabCompleter {
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(Component.text(""));
-        sender.sendMessage(miniMessage.deserialize(
+        sender.sendMessage(com.uitem.util.TextUtil.parse(
                 "  <gradient:#ff6b6b:#ffd93d><bold>UItem</bold></gradient> <gray>— Plugin Item Tùy Chỉnh"));
         sender.sendMessage(Component.text(""));
-        sender.sendMessage(miniMessage.deserialize(
+        sender.sendMessage(com.uitem.util.TextUtil.parse(
                 "  <gold>/uitem give <id> [player] [amount] <dark_gray>— <gray>Give item cho người chơi"));
-        sender.sendMessage(miniMessage.deserialize(
+        sender.sendMessage(com.uitem.util.TextUtil.parse(
                 "  <gold>/uitem editor <dark_gray>— <gray>Mở GUI editor item"));
-        sender.sendMessage(miniMessage.deserialize(
+        sender.sendMessage(com.uitem.util.TextUtil.parse(
                 "  <gold>/uitem list <dark_gray>— <gray>Liệt kê item"));
-        sender.sendMessage(miniMessage.deserialize(
+        sender.sendMessage(com.uitem.util.TextUtil.parse(
                 "  <gold>/uitem rp <generate|export|apply|status> <dark_gray>— <gray>" + (Messages.isVietnamese() ? "Quản lý resource pack" : "Manage resource pack") ));
-        sender.sendMessage(miniMessage.deserialize(
+        sender.sendMessage(com.uitem.util.TextUtil.parse(
                 "  <gold>/uitem check <dark_gray>— <gray>Kiểm tra item đang cầm có phải UItem không"));
-        sender.sendMessage(miniMessage.deserialize(
+        sender.sendMessage(com.uitem.util.TextUtil.parse(
                 "  <gold>/uitem craft <dark_gray>— <gray>Mở bàn chế tạo UItem"));
-        sender.sendMessage(miniMessage.deserialize(
+        sender.sendMessage(com.uitem.util.TextUtil.parse(
                 "  <gold>/crafting <dark_gray>— <gray>Liệt kê tất cả công thức chế tạo"));
-        sender.sendMessage(miniMessage.deserialize(
+        sender.sendMessage(com.uitem.util.TextUtil.parse(
                 "  <gold>/crafting craft <dark_gray>— <gray>Mở bàn chế tạo UItem"));
-        sender.sendMessage(miniMessage.deserialize(
+        sender.sendMessage(com.uitem.util.TextUtil.parse(
                 "  <gold>/uitem reload <dark_gray>— <gray>Reload plugin"));
-        sender.sendMessage(miniMessage.deserialize(
+        sender.sendMessage(com.uitem.util.TextUtil.parse(
                 "  <gold>/uitem help <dark_gray>— <gray>Hiển thị trợ giúp"));
-        sender.sendMessage(miniMessage.deserialize(
+        sender.sendMessage(com.uitem.util.TextUtil.parse(
                 "  <gold>/ui <dark_gray>— <gray>Bí danh ngắn cho /uitem"));
         sender.sendMessage(Component.text(""));
     }

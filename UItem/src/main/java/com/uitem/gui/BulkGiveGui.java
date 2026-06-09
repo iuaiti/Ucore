@@ -4,7 +4,6 @@ import com.uitem.UItemData;
 import com.uitem.UItemPlugin;
 import com.uitem.util.TextUtil;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -72,13 +71,13 @@ public class BulkGiveGui extends AbstractGui {
             if (meta != null) {
                 List<Component> lore = meta.lore() != null ? new ArrayList<>(meta.lore()) : new ArrayList<>();
                 lore.add(Component.empty());
-                lore.add(MiniMessage.miniMessage().deserialize("<dark_gray>──────────────"));
-                lore.add(MiniMessage.miniMessage().deserialize("<gray>ID: <white>" + data.getId()));
+                lore.add(com.uitem.util.TextUtil.parse("<dark_gray>──────────────"));
+                lore.add(com.uitem.util.TextUtil.parse("<gray>ID: <white>" + data.getId()));
                 if (selected) {
-                    lore.add(MiniMessage.miniMessage().deserialize("<green>✔ ĐÃ CHỌN"));
-                    lore.add(MiniMessage.miniMessage().deserialize("<yellow>Click để bỏ chọn"));
+                    lore.add(com.uitem.util.TextUtil.parse("<green>✔ ĐÃ CHỌN"));
+                    lore.add(com.uitem.util.TextUtil.parse("<yellow>Click để bỏ chọn"));
                 } else {
-                    lore.add(MiniMessage.miniMessage().deserialize("<gray>Click để chọn"));
+                    lore.add(com.uitem.util.TextUtil.parse("<gray>Click để chọn"));
                 }
                 meta.lore(lore);
 

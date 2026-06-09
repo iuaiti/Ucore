@@ -193,3 +193,75 @@ server_info_display:
     - "<gray>Players Online: <yellow><online></yellow></gray>"
     - "<gray>TPS: <yellow><tps></yellow></gray>"
     - "<gray>Uptime: <yellow><uptime></yellow></gray>"
+
+warp:
+  material: COMPASS
+  name: "<gradient:#AAFFAA:#00FFAA>Warps</gradient>"
+  lore:
+    - "<gray>Teleport to server locations</gray>"
+    - ""
+    - "<yellow>Click to view!</yellow>"
+
+warp_spawn:
+  material: BEACON
+  name: "<yellow>Spawn</yellow>"
+  lore:
+    - "<gray>Teleport to the spawn point</gray>"
+    - ""
+    - "<green>Click to teleport!</green>"
+
+warp_survival:
+  material: GRASS_BLOCK
+  name: "<green>Survival</green>"
+  lore:
+    - "<gray>Teleport to the survival world</gray>"
+    - ""
+    - "<green>Click to teleport!</green>"
+
+warp_nether:
+  material: NETHERRACK
+  name: "<red>Nether</red>"
+  lore:
+    - "<gray>Teleport to the nether</gray>"
+    - ""
+    - "<green>Click to teleport!</green>"
+
+warp_end:
+  material: END_STONE
+  name: "<light_purple>The End</light_purple>"
+  lore:
+    - "<gray>Teleport to the end dimension</gray>"
+    - ""
+    - "<green>Click to teleport!</green>"
+
+warp_mines:
+  material: DIAMOND_PICKAXE
+  name: "<gradient:#FFAA00:#FF5500>Mines</gradient>"
+  lore:
+    - "<gray>Teleport to the mining area</gray>"
+    - ""
+    - "<green>Click to teleport!</green>"
+
+uitem_link:
+  material: DIAMOND
+  name: "<gradient:#ff6b6b:#ffd93d><bold>UItem</bold></gradient>"
+  lore:
+    - "<gray>Custom item manager</gray>"
+    - ""
+    - "<green>Click to open!</green>"
+
+uskill_link:
+  material: BLAZE_POWDER
+  name: "<gradient:#FF00FF:#AA00FF><bold>USkill</bold></gradient>"
+  lore:
+    - "<gray>Skill engine active</gray>"
+    - ""
+    - "<green>Click to open!</green>"
+
+warp_arena:
+  material: DIAMOND_SWORD
+  name: "<red>PvP Arena</red>"
+  lore:
+    - "<gray>Teleport to the PvP arena</gray>"
+    - ""
+    - "<green>Click to teleport!</green>"

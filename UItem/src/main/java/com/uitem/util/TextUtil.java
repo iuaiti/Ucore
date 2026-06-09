@@ -7,6 +7,9 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 
 /**
  * Utility class cho text và component.
+ * <p>
+ * Toàn bộ logic text delegate lên UCore's TextUtil. Các method prefix/prefixed
+ * là riêng của UItem (UCore không có prefix riêng cho từng plugin).
  */
 public final class TextUtil {
 
@@ -16,21 +19,20 @@ public final class TextUtil {
     }
 
     /**
-     * Parse MiniMessage string thành Component.
+     * Parse MiniMessage string thành Component (italic tắt).
      */
     public static Component parse(String miniMessageStr) {
         if (miniMessageStr == null || miniMessageStr.isEmpty()) {
             return Component.empty();
         }
-        return MINI_MESSAGE.deserialize(miniMessageStr)
-                .decoration(TextDecoration.ITALIC, false); // Tắt italic mặc định của lore
+        return com.ultra.ucore.util.TextUtil.parse(miniMessageStr, true);
     }
 
     /**
-     * Tạo Component đơn giản với màu.
+     * Tạo Component đơn giản với màu (italic tắt).
      */
     public static Component colored(String text, NamedTextColor color) {
-        return Component.text(text, color).decoration(TextDecoration.ITALIC, false);
+        return com.ultra.ucore.util.TextUtil.colored(text, color);
     }
 
     /**
@@ -44,27 +46,27 @@ public final class TextUtil {
      * Tin nhắn với prefix.
      */
     public static Component prefixed(String message) {
-        return prefix().append(MINI_MESSAGE.deserialize(message));
+        return prefix().append(com.ultra.ucore.util.TextUtil.parse(message));
     }
 
     /**
-     * Tin nhắn lỗi.
+     * Tin nhắn lỗi (có prefix UItem).
      */
     public static Component error(String message) {
-        return prefix().append(Component.text(message, NamedTextColor.RED));
+        return prefix().append(com.ultra.ucore.util.TextUtil.error(message));
     }
 
     /**
-     * Tin nhắn thành công.
+     * Tin nhắn thành công (có prefix UItem).
      */
     public static Component success(String message) {
-        return prefix().append(Component.text(message, NamedTextColor.GREEN));
+        return prefix().append(com.ultra.ucore.util.TextUtil.success(message));
     }
 
     /**
-     * Tin nhắn thông tin.
+     * Tin nhắn thông tin (có prefix UItem).
      */
     public static Component info(String message) {
-        return prefix().append(Component.text(message, NamedTextColor.GRAY));
+        return prefix().append(com.ultra.ucore.util.TextUtil.info(message));
     }
 }

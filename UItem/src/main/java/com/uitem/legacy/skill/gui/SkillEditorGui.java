@@ -6,9 +6,9 @@ import com.uitem.gui.PotionPresetComboGui;
 import com.uitem.gui.PotionPresetGui;
 import com.uitem.UItemPlugin;
 import com.uitem.legacy.skill.SkillDataHelper;
-import com.ultra.uskill.model.Skill;
-import com.ultra.uskill.model.SkillAction;
-import com.ultra.uskill.model.SkillTrigger;
+import com.ultra.ucore.skill.Skill;
+import com.ultra.ucore.skill.SkillAction;
+import com.ultra.ucore.skill.SkillTrigger;
 import com.uitem.util.Messages;
 import com.uitem.util.TextUtil;
 import org.bukkit.Material;
@@ -260,12 +260,12 @@ public class SkillEditorGui extends AbstractGui {
 
         // Quick condition buttons (row 1, after active triggers)
         setItem(16, createItem(Material.EMERALD, "<green>Cond: Chance 75%", List.of("<gray>Click to add 75% chance")), ev -> {
-            skill.addCondition(com.ultra.uskill.model.SkillCondition.chance(75));
+            skill.addCondition(com.ultra.ucore.skill.SkillCondition.chance(75));
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
             saveAndRefresh();
         });
         setItem(17, createItem(Material.REDSTONE, "<red>Cond: Chance 50%", List.of("<gray>Click to add 50% chance")), ev -> {
-            skill.addCondition(com.ultra.uskill.model.SkillCondition.chance(50));
+            skill.addCondition(com.ultra.ucore.skill.SkillCondition.chance(50));
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
             saveAndRefresh();
         });

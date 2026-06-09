@@ -1,4 +1,4 @@
-package com.ultra.uskill.model;
+package com.ultra.ucore.skill;
 
 import java.util.*;
 

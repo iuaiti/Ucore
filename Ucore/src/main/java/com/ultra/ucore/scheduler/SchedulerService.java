@@ -1,17 +1,28 @@
 package com.ultra.ucore.scheduler;
 
-import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 
 /**
  * Scheduler abstraction.
+ * <p>
+ * Các method chạy global/main-thread sử dụng GlobalRegionScheduler (Folia-safe).
+ * Async method sử dụng AsyncScheduler.
+ * runAtLocation / runForEntity delegate tới đúng region scheduler.
  */
 public interface SchedulerService {
 
-    BukkitTask sync(Runnable task);
+    void sync(Runnable task);
 
-    BukkitTask async(Runnable task);
+    void async(Runnable task);
 
-    BukkitTask later(Runnable task, long delayTicks);
+    void later(Runnable task, long delayTicks);
 
-    BukkitTask repeat(Runnable task, long delayTicks, long periodTicks);
+    void repeat(Runnable task, long delayTicks, long periodTicks);
+
+    void runAtLocation(Location location, Runnable task);
+
+    void runForEntity(Entity entity, Runnable task);
+
+    boolean isFolia();
 }

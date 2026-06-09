@@ -3,33 +3,30 @@ package com.uitem.legacy.skill;
 import com.uitem.UItemData;
 import com.uitem.UItemPlugin;
 import com.uitem.api.UItemAPI;
-import com.uitem.legacy.skill.SkillDataHelper;
-import com.ultra.uskill.cooldown.CooldownManager;
-import com.ultra.uskill.model.Skill;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import com.ultra.ucore.api.UCoreAPI;
+import com.ultra.ucore.skill.Skill;
+import com.ultra.ucore.skill.SkillService;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 
 public class SkillActionBar {
 
     private final UItemPlugin plugin;
-    private final CooldownManager cooldowns;
-    private final MiniMessage mm = MiniMessage.miniMessage();
-    private BukkitTask task;
+    private final SkillService skillService;
+    private ScheduledTask task;
 
-    public SkillActionBar(UItemPlugin plugin, CooldownManager cooldowns) {
+    public SkillActionBar(UItemPlugin plugin) {
         this.plugin = plugin;
-        this.cooldowns = cooldowns;
+        this.skillService = UCoreAPI.getSkillService();
     }
 
     public void start() {
         if (task != null) task.cancel();
-        task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 40L, 20L);
+        task = plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, scheduledTask -> tick(), 40L, 20L);
     }
 
     public void shutdown() {
@@ -61,7 +58,7 @@ public class SkillActionBar {
                             .append(String.format("%.1f", e.remaining)).append("s");
                 }
 
-                player.sendActionBar(mm.deserialize(sb.toString()));
+                player.sendActionBar(com.uitem.util.TextUtil.parse(sb.toString()));
             } catch (Exception ignored) {
             }
         }
@@ -77,7 +74,7 @@ public class SkillActionBar {
 
         for (Skill skill : skills) {
             if (skill.getCooldown() <= 0) continue;
-            double remaining = cooldowns.getRemainingSeconds(player, itemId, skill.getId(), skill.getCooldown());
+            double remaining = skillService.getRemainingSeconds(player, itemId, skill.getId(), skill.getCooldown());
             if (remaining <= 0) continue;
 
             double cooldown = skill.getCooldown();

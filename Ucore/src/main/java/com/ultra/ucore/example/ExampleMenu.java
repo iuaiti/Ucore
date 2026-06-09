@@ -15,7 +15,7 @@ public final class ExampleMenu {
 
         ItemStack item = ItemBuilder.create(Material.DIAMOND)
                 .name("<gradient:#00FFFF:#FF00FF>Ultra Diamond</gradient>")
-                .lore("<gray>Click to receive a message.")
+                .lore("<gray>Click to receive a message.</gray>")
                 .build();
 
         gui.setButton(22, new Button(item, event -> {

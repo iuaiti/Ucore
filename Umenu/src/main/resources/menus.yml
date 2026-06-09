@@ -38,6 +38,11 @@ main-menu:
       item: collection
       action: OPEN_MENU
       target: collection
+    warp:
+      slot: 25
+      item: warp
+      action: OPEN_MENU
+      target: warp
     settings:
       slot: 29
       item: settings
@@ -204,6 +209,68 @@ settings-menu:
       item: setting_notifications
     back:
       slot: 40
+      item: back
+      action: BACK
+      target: main
+
+module-uitem:
+  items:
+    link:
+      slot: 43
+      item: uitem_link
+      action: COMMAND
+      target: "uitem editor"
+
+module-uskill:
+  items:
+    link:
+      slot: 43
+      item: uskill_link
+      action: COMMAND
+      target: "uskill"
+
+warp-menu:
+  title: "<gradient:#AAFFAA:#00FFAA>Warps</gradient>"
+  size: 54
+  border:
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    slots:
+      - 0-8
+      - 45-53
+  items:
+    spawn:
+      slot: 11
+      item: warp_spawn
+      action: WARP
+      target: spawn
+    survival:
+      slot: 13
+      item: warp_survival
+      action: WARP
+      target: survival
+    nether:
+      slot: 15
+      item: warp_nether
+      action: WARP
+      target: nether
+    end:
+      slot: 20
+      item: warp_end
+      action: WARP
+      target: end
+    mines:
+      slot: 22
+      item: warp_mines
+      action: WARP
+      target: mines
+    arena:
+      slot: 24
+      item: warp_arena
+      action: WARP
+      target: arena
+    back:
+      slot: 49
       item: back
       action: BACK
       target: main

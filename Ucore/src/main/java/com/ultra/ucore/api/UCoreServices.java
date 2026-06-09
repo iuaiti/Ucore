@@ -7,6 +7,7 @@ import com.ultra.ucore.gui.GuiManager;
 import com.ultra.ucore.message.MessageManager;
 import com.ultra.ucore.placeholder.PlaceholderManager;
 import com.ultra.ucore.scheduler.SchedulerService;
+import com.ultra.ucore.skill.SkillService;
 
 /**
  * Immutable service container used by the public UCore API.
@@ -18,6 +19,7 @@ public record UCoreServices(
         CooldownManager cooldownManager,
         DatabaseManager databaseManager,
         SchedulerService schedulerService,
-        PlaceholderManager placeholderManager
+        PlaceholderManager placeholderManager,
+        SkillService skillService
 ) {
 }

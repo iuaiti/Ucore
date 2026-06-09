@@ -5,7 +5,8 @@ public enum ModuleType {
     UBOSS("UBoss"),
     UCRATE("UCrate"),
     UCOLLECTION("UCollection"),
-    UITEM("UItem");
+    UITEM("UItem"),
+    USKILL("USkill");
 
     private final String pluginName;
 

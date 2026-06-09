@@ -25,6 +25,11 @@
 /workspaces/Ucore/Ucore/src/main/java/com/ultra/ucore/placeholder/PlaceholderManager.java
 /workspaces/Ucore/Ucore/src/main/java/com/ultra/ucore/scheduler/PaperSchedulerService.java
 /workspaces/Ucore/Ucore/src/main/java/com/ultra/ucore/scheduler/SchedulerService.java
+/workspaces/Ucore/Ucore/src/main/java/com/ultra/ucore/skill/Skill.java
+/workspaces/Ucore/Ucore/src/main/java/com/ultra/ucore/skill/SkillAction.java
+/workspaces/Ucore/Ucore/src/main/java/com/ultra/ucore/skill/SkillCondition.java
+/workspaces/Ucore/Ucore/src/main/java/com/ultra/ucore/skill/SkillService.java
+/workspaces/Ucore/Ucore/src/main/java/com/ultra/ucore/skill/SkillTrigger.java
 /workspaces/Ucore/Ucore/src/main/java/com/ultra/ucore/util/ItemUtil.java
 /workspaces/Ucore/Ucore/src/main/java/com/ultra/ucore/util/LocationUtil.java
 /workspaces/Ucore/Ucore/src/main/java/com/ultra/ucore/util/NumberUtil.java

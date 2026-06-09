@@ -1,12 +1,11 @@
 package com.ultra.uskill.execution;
 
 import com.ultra.uskill.cooldown.CooldownManager;
-import com.ultra.uskill.model.Skill;
-import com.ultra.uskill.model.SkillAction;
-import com.ultra.uskill.model.SkillCondition;
-import com.ultra.uskill.model.SkillTrigger;
+import com.ultra.ucore.skill.Skill;
+import com.ultra.ucore.skill.SkillAction;
+import com.ultra.ucore.skill.SkillCondition;
+import com.ultra.ucore.skill.SkillTrigger;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -22,7 +21,6 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class SkillExecutor {
 
     private final CooldownManager cooldowns;
-    private final MiniMessage mm = MiniMessage.miniMessage();
 
     private static final java.util.Set<Material> BLOCK_BREAK_PROTECTED = java.util.Set.of(
             Material.BEDROCK,
@@ -142,7 +140,10 @@ public final class SkillExecutor {
             try {
                 boolean ran = runSingleAction(player, target, action, skill);
                 if (ran) anySuccess = true;
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                Bukkit.getLogger().warning("[USkill] Failed to execute action " + action.getType()
+                        + " for skill " + skill.getId() + " on " + player.getName() + ": " + e.getMessage());
+            }
         }
         return anySuccess;
     }
@@ -156,13 +157,13 @@ public final class SkillExecutor {
 
             case MESSAGE -> {
                 String text = replacePlaceholders(action.getStringParam("text", ""), player, target);
-                player.sendMessage(mm.deserialize(text));
+                player.sendMessage(com.ultra.ucore.util.TextUtil.parse(text));
                 return true;
             }
 
             case ACTION_BAR -> {
                 String text = replacePlaceholders(action.getStringParam("text", ""), player, target);
-                player.sendActionBar(mm.deserialize(text));
+                player.sendActionBar(com.ultra.ucore.util.TextUtil.parse(text));
                 return true;
             }
 
@@ -173,8 +174,8 @@ public final class SkillExecutor {
                 int stay = action.getIntParam("stay", 40);
                 int fadeOut = action.getIntParam("fadeOut", 10);
                 player.showTitle(net.kyori.adventure.title.Title.title(
-                        mm.deserialize(title),
-                        mm.deserialize(sub),
+                        com.ultra.ucore.util.TextUtil.parse(title),
+                        com.ultra.ucore.util.TextUtil.parse(sub),
                         net.kyori.adventure.title.Title.Times.times(
                                 java.time.Duration.ofMillis(fadeIn * 50L),
                                 java.time.Duration.ofMillis(stay * 50L),
@@ -204,7 +205,9 @@ public final class SkillExecutor {
                 try {
                     Particle particle = Particle.valueOf(p.toUpperCase(Locale.ROOT));
                     world.spawnParticle(particle, loc.clone().add(0, 1, 0), count, off, off, off, 0.01);
-                } catch (Exception ignored) {}
+                } catch (Exception e) {
+                    Bukkit.getLogger().warning("[USkill] Invalid particle '" + p + "' in skill " + skill.getId() + ": " + e.getMessage());
+                }
                 return true;
             }
 
@@ -233,7 +236,8 @@ public final class SkillExecutor {
 
             case SET_FIRE -> {
                 int sec = Math.min(action.getIntParam("seconds", 4), 10000);
-                player.setFireTicks(sec * 20);
+                LivingEntity fireTarget = (target != null && target.isValid()) ? target : player;
+                fireTarget.setFireTicks(sec * 20);
                 return true;
             }
 
@@ -371,7 +375,9 @@ public final class SkillExecutor {
                     for (ItemStack leftover : leftovers.values()) {
                         player.getWorld().dropItemNaturally(player.getLocation(), leftover);
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception e) {
+                    Bukkit.getLogger().warning("[USkill] Failed to give item material=" + mat + " in skill " + skill.getId() + ": " + e.getMessage());
+                }
                 return true;
             }
 
@@ -503,9 +509,10 @@ public final class SkillExecutor {
             case LEVITATE -> {
                 int dur = Math.min(action.getIntParam("duration", 5), 30);
                 int amp = action.getIntParam("amplifier", 0);
+                LivingEntity levTarget = (target != null && target.isValid()) ? target : player;
                 PotionEffectType lev = Registry.EFFECT.get(NamespacedKey.minecraft("levitation"));
                 if (lev != null) {
-                    player.addPotionEffect(new PotionEffect(lev, dur * 20, amp, false, true, true));
+                    levTarget.addPotionEffect(new PotionEffect(lev, dur * 20, amp, false, true, true));
                 }
                 return true;
             }
@@ -528,7 +535,9 @@ public final class SkillExecutor {
                                     .filter(ex -> ex instanceof Player && !ex.equals(player))
                                     .findFirst().orElse(null));
                         }
-                    } catch (Exception ignored) {}
+                    } catch (Exception e) {
+                        Bukkit.getLogger().warning("[USkill] Failed to spawn mob " + entityTypeName + " in skill " + skill.getId() + ": " + e.getMessage());
+                    }
                 }
                 return true;
             }

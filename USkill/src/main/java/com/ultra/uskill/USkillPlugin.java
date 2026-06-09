@@ -1,13 +1,14 @@
 package com.ultra.uskill;
 
+import com.ultra.ucore.api.UCoreAPI;
 import com.ultra.uskill.api.USkillAPI;
 import com.ultra.uskill.api.USkillProvider;
 import com.ultra.uskill.cooldown.CooldownManager;
 import com.ultra.uskill.execution.SkillExecutor;
-import com.ultra.uskill.model.Skill;
-import com.ultra.uskill.model.SkillAction;
-import com.ultra.uskill.model.SkillCondition;
-import com.ultra.uskill.model.SkillTrigger;
+import com.ultra.ucore.skill.Skill;
+import com.ultra.ucore.skill.SkillAction;
+import com.ultra.ucore.skill.SkillCondition;
+import com.ultra.ucore.skill.SkillTrigger;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.LivingEntity;
@@ -37,13 +38,22 @@ public final class USkillPlugin extends JavaPlugin implements USkillAPI {
 
         USkillProvider.register(this);
 
+        // Bridge: register this plugin as the SkillService via UCore
+        UCoreAPI.registerSkillService(this);
+
+        // Bridge: register USkill placeholders via UCore's PlaceholderManager
+        UCoreAPI.getPlaceholderManager().register("uskill_version",
+                ctx -> getPluginMeta().getVersion());
+
         getLogger().info("╔══════════════════════════════════════════════╗");
         getLogger().info("║        ⚡ USkill v" + getPluginMeta().getVersion() + " — Skill Engine");
+        getLogger().info("║        ◆ UCore bridge: active");
         getLogger().info("╚══════════════════════════════════════════════╝");
     }
 
     @Override
     public void onDisable() {
+        UCoreAPI.getPlaceholderManager().unregister("uskill_version");
         USkillProvider.unregister();
         instance = null;
     }
@@ -65,6 +75,39 @@ public final class USkillPlugin extends JavaPlugin implements USkillAPI {
     @Override
     public boolean executeSkill(Player player, Skill skill, LivingEntity target) {
         return executor.executeSkill(player, skill, target);
+    }
+
+    @Override
+    public boolean executeSkills(Player player, String itemId, List<Skill> skills, SkillTrigger trigger, LivingEntity target) {
+        return executor.executeSkills(player, itemId, skills, trigger, target);
+    }
+
+    @Override
+    public void tickPeriodicSkills(Player player, String itemId, List<Skill> skills, SkillTrigger triggerType) {
+        executor.tickPeriodicSkills(player, itemId, skills, triggerType);
+    }
+
+    @Override
+    public boolean isReady(Player player, String itemId, String skillId, double cooldownSeconds) {
+        return cooldownManager.isReady(player, itemId, skillId, cooldownSeconds);
+    }
+
+    @Override
+    public double getRemainingSeconds(Player player, String itemId, String skillId, double cooldownSeconds) {
+        return cooldownManager.getRemainingSeconds(player, itemId, skillId, cooldownSeconds);
+    }
+
+    @Override
+    public void register(Player player, String itemId, List<Skill> skills, SkillTrigger trigger) {
+    }
+
+    @Override
+    public void unregister(Player player) {
+    }
+
+    @Override
+    public void onPlayerQuit(Player player) {
+        cooldownManager.onPlayerQuit(player);
     }
 
     @Override

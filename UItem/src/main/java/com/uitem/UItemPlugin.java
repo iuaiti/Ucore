@@ -47,8 +47,6 @@ public final class UItemPlugin extends JavaPlugin {
     private Listener resourcePackJoinListener;
 
     // Native Skill system (delegates to USkill)
-    private com.ultra.uskill.cooldown.CooldownManager skillCooldownManager;
-    private com.ultra.uskill.execution.SkillExecutor skillExecutor;
     private com.uitem.legacy.skill.UItemSkillListener skillListener;
     private com.uitem.legacy.skill.SkillActionBar skillActionBar;
 
@@ -102,11 +100,9 @@ public final class UItemPlugin extends JavaPlugin {
 
         this.recipeManager = new RecipeManager(this, this.itemManager);
 
-        // === Native Skill & Passive System (delegates to USkill) ===
-        this.skillCooldownManager = new com.ultra.uskill.cooldown.CooldownManager(this);
-        this.skillExecutor = new com.ultra.uskill.execution.SkillExecutor(this.skillCooldownManager);
-        this.skillListener = new com.uitem.legacy.skill.UItemSkillListener(this, this.skillExecutor);
-        this.skillActionBar = new com.uitem.legacy.skill.SkillActionBar(this, this.skillCooldownManager);
+        // === Native Skill & Passive System (delegates to USkill via UCore's SkillService) ===
+        this.skillListener = new com.uitem.legacy.skill.UItemSkillListener(this);
+        this.skillActionBar = new com.uitem.legacy.skill.SkillActionBar(this);
         this.skillActionBar.start();
 
         RarityConfig.load(this);
@@ -370,13 +366,6 @@ public final class UItemPlugin extends JavaPlugin {
         return recipeManager;
     }
 
-    public com.ultra.uskill.cooldown.CooldownManager getSkillCooldownManager() {
-        return skillCooldownManager;
-    }
-
-    public com.ultra.uskill.execution.SkillExecutor getSkillExecutor() {
-        return skillExecutor;
-    }
 
     /**
      * Nếu thư mục items/ hoặc recipes/ trống (không có file .yml), tạo file ví dụ.

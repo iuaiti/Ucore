@@ -1,7 +1,7 @@
 package com.ultra.uskill.effect;
 
-import com.ultra.uskill.model.Skill;
-import com.ultra.uskill.model.SkillAction;
+import com.ultra.ucore.skill.Skill;
+import com.ultra.ucore.skill.SkillAction;
 import org.bukkit.Registry;
 import org.bukkit.NamespacedKey;
 import org.bukkit.potion.PotionEffectType;

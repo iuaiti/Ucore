@@ -1,13 +1,15 @@
 package com.uitem;
 
+import com.ultra.ucore.api.UCoreAPI;
+import com.ultra.ucore.placeholder.PlaceholderManager;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -29,13 +31,11 @@ public class UItemManager {
     private final UItemPlugin plugin;
     private final Map<String, UItemData> items;
     private final NamespacedKey uitemKey;
-    private final MiniMessage miniMessage;
 
     public UItemManager(UItemPlugin plugin) {
         this.plugin = plugin;
         this.items = new ConcurrentHashMap<>();
         this.uitemKey = new NamespacedKey(plugin, "uitem_id");
-        this.miniMessage = MiniMessage.miniMessage();
     }
 
     /**
@@ -239,6 +239,58 @@ public class UItemManager {
     }
 
     /**
+     * Build ItemStack với UCore placeholder support (player-aware).
+     * Áp dụng %placeholder% từ UCore's PlaceholderManager vào display name và lore.
+     */
+    public ItemStack buildItemStack(UItemData data, Player player) {
+        ItemStack item = buildItemStack(data);
+        if (player == null) return item;
+
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+
+        PlaceholderManager pm = UCoreAPI.getPlaceholderManager();
+        var ctx = new PlaceholderManager.PlaceholderContext(player, player);
+
+        if (meta.hasDisplayName()) {
+            String rawName = data.getDisplayName() != null ? data.getDisplayName() : "";
+            if (!rawName.isEmpty()) {
+                String rarity = data.getRarity();
+                if (rarity != null) {
+                    String prefix = RarityConfig.getRarityPrefix(rarity);
+                    if (prefix != null && !prefix.isEmpty()) {
+                        rawName = prefix + " " + rawName;
+                    }
+                }
+                String parsed = pm.apply(rawName, ctx);
+                meta.displayName(safeDeserialize(parsed, data.getId()));
+            }
+        }
+
+        if (meta.hasLore()) {
+            List<Component> newLore = new ArrayList<>();
+            if (data.getLore() != null) {
+                for (String line : data.getLore()) {
+                    String parsed = pm.apply(line, ctx);
+                    newLore.add(safeDeserialize(parsed, data.getId()));
+                }
+            }
+            String rarity = data.getRarity();
+            if (rarity != null) {
+                List<String> rarityLore = RarityConfig.getRarityLore(rarity);
+                for (String line : rarityLore) {
+                    String parsed = pm.apply(line, ctx);
+                    newLore.add(safeDeserialize(parsed, data.getId()));
+                }
+            }
+            meta.lore(newLore);
+        }
+
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /**
      * Build ItemStack cho preview trong GUI (có thêm thông tin phụ).
      * Mặc định hiển thị ID và thông tin nội bộ (dành cho admin/editor).
      */
@@ -262,14 +314,14 @@ public class UItemManager {
 
             if (showId) {
                 lore.add(Component.empty());
-                lore.add(miniMessage.deserialize("<dark_gray>──────────────"));
-                lore.add(miniMessage.deserialize("<gray>ID: <white>" + data.getId()));
+                lore.add(com.uitem.util.TextUtil.parse("<dark_gray>──────────────"));
+                lore.add(com.uitem.util.TextUtil.parse("<gray>ID: <white>" + data.getId()));
                 Material previewMaterial = data.getMaterial() != null ? data.getMaterial() : Material.STONE;
-                lore.add(miniMessage.deserialize("<gray>Material: <white>" + previewMaterial.name()));
-                lore.add(miniMessage.deserialize("<gray>CMD: <white>" + (data.getCustomModelData() > 0 ? data.getCustomModelData() : "Không")));
-                lore.add(miniMessage.deserialize("<dark_gray>──────────────"));
-                lore.add(miniMessage.deserialize("<yellow>Click trái: <white>Chỉnh sửa"));
-                lore.add(miniMessage.deserialize("<red>Click phải: <white>Xóa"));
+                lore.add(com.uitem.util.TextUtil.parse("<gray>Material: <white>" + previewMaterial.name()));
+                lore.add(com.uitem.util.TextUtil.parse("<gray>CMD: <white>" + (data.getCustomModelData() > 0 ? data.getCustomModelData() : "Không")));
+                lore.add(com.uitem.util.TextUtil.parse("<dark_gray>──────────────"));
+                lore.add(com.uitem.util.TextUtil.parse("<yellow>Click trái: <white>Chỉnh sửa"));
+                lore.add(com.uitem.util.TextUtil.parse("<red>Click phải: <white>Xóa"));
             }
 
             meta.lore(lore);
@@ -286,7 +338,7 @@ public class UItemManager {
      */
     private Component safeDeserialize(String miniMessageStr, String itemId) {
         try {
-            return miniMessage.deserialize(miniMessageStr);
+            return com.uitem.util.TextUtil.parse(miniMessageStr);
         } catch (Exception e) {
             plugin.getLogger().warning(
                 "[UItem] Invalid MiniMessage in item '" + itemId + "': " + miniMessageStr

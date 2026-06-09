@@ -293,7 +293,7 @@ public final class UItemAPI {
         if (data == null) return false;
 
         int clampedAmount = Math.max(1, Math.min(64, amount));
-        ItemStack itemStack = plugin.getItemManager().buildItemStack(data);
+        ItemStack itemStack = plugin.getItemManager().buildItemStack(data, player);
         itemStack.setAmount(clampedAmount);
 
         UItemGiveEvent event = new UItemGiveEvent(data, player, giver, itemStack.clone(), clampedAmount);

@@ -71,7 +71,8 @@ public final class UCorePlugin extends JavaPlugin {
                 cooldownManager,
                 databaseManager,
                 schedulerService,
-                placeholderManager
+                placeholderManager,
+                null // SkillService will be registered by USkill
         ));
 
         getLogger().info("UCore enabled.");

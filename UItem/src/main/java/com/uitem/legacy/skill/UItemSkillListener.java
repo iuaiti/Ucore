@@ -6,10 +6,10 @@ import com.uitem.api.UItemAPI;
 import com.uitem.api.events.UItemEquipEvent;
 import com.uitem.api.events.UItemInteractEvent;
 import com.uitem.legacy.skill.SkillDataHelper;
-import com.uitem.util.SchedulerUtil;
-import com.ultra.uskill.execution.SkillExecutor;
-import com.ultra.uskill.model.Skill;
-import com.ultra.uskill.model.SkillTrigger;
+import com.ultra.ucore.api.UCoreAPI;
+import com.ultra.ucore.skill.Skill;
+import com.ultra.ucore.skill.SkillService;
+import com.ultra.ucore.skill.SkillTrigger;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -27,7 +27,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 
 import java.util.*;
 
@@ -43,7 +43,7 @@ import java.util.*;
 public class UItemSkillListener implements Listener {
 
     private final UItemPlugin plugin;
-    private final SkillExecutor executor;
+    private final SkillService skillService;
 
     // Track item đang cầm để WHILE_HOLDING
     private final Map<UUID, String> lastHeldUItem = new HashMap<>();
@@ -52,18 +52,18 @@ public class UItemSkillListener implements Listener {
     private boolean inDamageProcessing = false;
 
     // Periodic ticker (chạy mỗi 5 tick ~0.25s, đủ mượt cho hầu hết aura/regen)
-    private BukkitTask periodicTask;
+    private ScheduledTask periodicTask;
 
-    public UItemSkillListener(UItemPlugin plugin, SkillExecutor executor) {
+    public UItemSkillListener(UItemPlugin plugin) {
         this.plugin = plugin;
-        this.executor = executor;
+        this.skillService = UCoreAPI.getSkillService();
         startPeriodicTask();
     }
 
     private void startPeriodicTask() {
         if (periodicTask != null) periodicTask.cancel();
 
-        periodicTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+        periodicTask = plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, scheduledTask -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 try {
                     tickPlayerPeriodic(p);
@@ -104,7 +104,7 @@ public class UItemSkillListener implements Listener {
         if (skills.isEmpty()) return;
 
         String itemId = data.getId();
-        executor.tickPeriodicSkills(player, itemId, skills, trigger);
+        skillService.tickPeriodicSkills(player, itemId, skills, trigger);
     }
 
     private void checkAndTickPeriodic(Player player, ItemStack item) {
@@ -112,7 +112,7 @@ public class UItemSkillListener implements Listener {
         if (data == null || SkillDataHelper.getSkills(data).isEmpty()) return;
 
         String itemId = data.getId();
-        executor.tickPeriodicSkills(player, itemId, SkillDataHelper.getSkills(data), SkillTrigger.PERIODIC);
+        skillService.tickPeriodicSkills(player, itemId, SkillDataHelper.getSkills(data), SkillTrigger.PERIODIC);
     }
 
     // =========================================================
@@ -136,7 +136,7 @@ public class UItemSkillListener implements Listener {
 
         if (trigger == null) return;
 
-        boolean executed = executor.executeSkills(player, data.getId(), SkillDataHelper.getSkills(data), trigger, null);
+        boolean executed = skillService.executeSkills(player, data.getId(), SkillDataHelper.getSkills(data), trigger, null);
 
         if (executed && shouldCancel(data, trigger)) {
             event.setCancelled(true);
@@ -154,8 +154,8 @@ public class UItemSkillListener implements Listener {
         boolean isThrow = event.getItemDrop().getVelocity().lengthSquared() > 0.1;
         SkillTrigger trigger = isThrow ? SkillTrigger.THROW : SkillTrigger.DROP;
 
-        boolean executed = executor.executeSkills(player, data.getId(), SkillDataHelper.getSkills(data), trigger, null);
-        if (executed && shouldCancelAny(data, trigger)) {
+        boolean executed = skillService.executeSkills(player, data.getId(), SkillDataHelper.getSkills(data), trigger, null);
+        if (executed && shouldCancel(data, trigger)) {
             event.setCancelled(true);
         }
     }
@@ -173,8 +173,8 @@ public class UItemSkillListener implements Listener {
         UItemData data = getUItemData(bow);
         if (data == null || SkillDataHelper.getSkills(data).isEmpty()) return;
 
-        boolean executed = executor.executeSkills(player, data.getId(), SkillDataHelper.getSkills(data), SkillTrigger.SHOOT, null);
-        if (executed && shouldCancelAny(data, SkillTrigger.SHOOT)) {
+        boolean executed = skillService.executeSkills(player, data.getId(), SkillDataHelper.getSkills(data), SkillTrigger.SHOOT, null);
+        if (executed && shouldCancel(data, SkillTrigger.SHOOT)) {
             event.setCancelled(true);
         }
     }
@@ -208,8 +208,8 @@ public class UItemSkillListener implements Listener {
 
         if (data == null || SkillDataHelper.getSkills(data).isEmpty()) return;
 
-        boolean executed = executor.executeSkills(player, data.getId(), SkillDataHelper.getSkills(data), SkillTrigger.SHOOT, null);
-        if (executed && shouldCancelAny(data, SkillTrigger.SHOOT)) {
+        boolean executed = skillService.executeSkills(player, data.getId(), SkillDataHelper.getSkills(data), SkillTrigger.SHOOT, null);
+        if (executed && shouldCancel(data, SkillTrigger.SHOOT)) {
             event.setCancelled(true);
         }
     }
@@ -220,8 +220,8 @@ public class UItemSkillListener implements Listener {
         ItemStack main = player.getInventory().getItemInMainHand();
         UItemData data = getUItemData(main);
         if (data != null && !SkillDataHelper.getSkills(data).isEmpty()) {
-            boolean executed = executor.executeSkills(player, data.getId(), SkillDataHelper.getSkills(data), SkillTrigger.SWAP_HAND, null);
-            if (executed && shouldCancelAny(data, SkillTrigger.SWAP_HAND)) {
+            boolean executed = skillService.executeSkills(player, data.getId(), SkillDataHelper.getSkills(data), SkillTrigger.SWAP_HAND, null);
+            if (executed && shouldCancel(data, SkillTrigger.SWAP_HAND)) {
                 event.setCancelled(true);
             }
         }
@@ -244,7 +244,7 @@ public class UItemSkillListener implements Listener {
                 UItemData data = getUItemData(weapon);
                 if (data != null && !SkillDataHelper.getSkills(data).isEmpty()) {
                     LivingEntity victim = (event.getEntity() instanceof LivingEntity le) ? le : null;
-                    executor.executeSkills(damager, data.getId(), SkillDataHelper.getSkills(data), SkillTrigger.HIT, victim);
+                    skillService.executeSkills(damager, data.getId(), SkillDataHelper.getSkills(data), SkillTrigger.HIT, victim);
                 }
             }
 
@@ -256,7 +256,7 @@ public class UItemSkillListener implements Listener {
                 if (heldData != null) {
                     List<Skill> heldSk = SkillDataHelper.getSkills(heldData);
                     if (!heldSk.isEmpty()) {
-                        executor.executeSkills(victim, heldData.getId(), heldSk, SkillTrigger.TAKE_DAMAGE, null);
+                        skillService.executeSkills(victim, heldData.getId(), heldSk, SkillTrigger.TAKE_DAMAGE, null);
                     }
                 }
                 // armor
@@ -266,7 +266,7 @@ public class UItemSkillListener implements Listener {
                     if (ad != null) {
                         List<Skill> aSkills = SkillDataHelper.getSkills(ad);
                         if (!aSkills.isEmpty()) {
-                            executor.executeSkills(victim, ad.getId(), aSkills, SkillTrigger.TAKE_DAMAGE, null);
+                            skillService.executeSkills(victim, ad.getId(), aSkills, SkillTrigger.TAKE_DAMAGE, null);
                         }
                     }
                 }
@@ -287,7 +287,7 @@ public class UItemSkillListener implements Listener {
         if (data == null || SkillDataHelper.getSkills(data).isEmpty()) return;
 
         SkillTrigger trig = event.isEquipping() ? SkillTrigger.EQUIP : SkillTrigger.UNEQUIP;
-        executor.executeSkills(p, data.getId(), SkillDataHelper.getSkills(data), trig, null);
+        skillService.executeSkills(p, data.getId(), SkillDataHelper.getSkills(data), trig, null);
     }
 
     // =========================================================
@@ -305,7 +305,7 @@ public class UItemSkillListener implements Listener {
             // Trigger WHILE_HOLDING ngay khi cầm lên (nếu có skill loại này)
             UItemData data = getUItemData(newItem);
             if (data != null) {
-                executor.executeSkills(p, newId, SkillDataHelper.getSkills(data), SkillTrigger.WHILE_HOLDING, null);
+                skillService.executeSkills(p, newId, SkillDataHelper.getSkills(data), SkillTrigger.WHILE_HOLDING, null);
             }
         }
         if (newId != null) lastHeldUItem.put(p.getUniqueId(), newId);
@@ -315,7 +315,7 @@ public class UItemSkillListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         lastHeldUItem.remove(event.getPlayer().getUniqueId());
-        executor.getCooldowns().onPlayerQuit(event.getPlayer());
+        skillService.onPlayerQuit(event.getPlayer());
     }
 
     // =========================================================
@@ -333,11 +333,6 @@ public class UItemSkillListener implements Listener {
     }
 
     private boolean shouldCancel(UItemData data, SkillTrigger trigger) {
-        List<Skill> sk = SkillDataHelper.getSkills(data);
-        return sk.stream().anyMatch(s -> s.getTrigger() == trigger && s.isCancelEvent());
-    }
-
-    private boolean shouldCancelAny(UItemData data, SkillTrigger trigger) {
         List<Skill> sk = SkillDataHelper.getSkills(data);
         return sk.stream().anyMatch(s -> s.getTrigger() == trigger && s.isCancelEvent());
     }

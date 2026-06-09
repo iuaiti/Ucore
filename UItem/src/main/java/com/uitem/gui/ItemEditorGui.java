@@ -527,8 +527,8 @@ public class ItemEditorGui extends AbstractGui {
                         newData.setModel(data.getModel());
                         for (UItemData.AttributeData a : data.getAttributes()) newData.getAttributes().add(a.copy());
                         for (UItemData.ItemEffect e : data.getEffects()) newData.getEffects().add(e.copy());
-                        java.util.List<com.ultra.uskill.model.Skill> clonedSkills = new java.util.ArrayList<>();
-                        for (com.ultra.uskill.model.Skill s : SkillDataHelper.getSkills(data)) {
+                        java.util.List<com.ultra.ucore.skill.Skill> clonedSkills = new java.util.ArrayList<>();
+                        for (com.ultra.ucore.skill.Skill s : SkillDataHelper.getSkills(data)) {
                             clonedSkills.add(s.copy());
                         }
                         SkillDataHelper.setSkills(newData, clonedSkills);

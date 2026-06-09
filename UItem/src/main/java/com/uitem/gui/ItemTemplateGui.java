@@ -353,17 +353,17 @@ public class ItemTemplateGui extends AbstractGui {
         d.setRarity("LEGENDARY");
 
         // Demo skill for trident: on throw (SHOOT trigger for trident/bow/crossbow)
-        com.ultra.uskill.model.Skill throwSkill = new com.ultra.uskill.model.Skill("ocean_throw");
+        com.ultra.ucore.skill.Skill throwSkill = new com.ultra.ucore.skill.Skill("ocean_throw");
         throwSkill.setDisplayName("<blue>🌊 Ocean Throw");
-        throwSkill.setTrigger(com.ultra.uskill.model.SkillTrigger.SHOOT);
+        throwSkill.setTrigger(com.ultra.ucore.skill.SkillTrigger.SHOOT);
         throwSkill.setCooldown(0.4);
         throwSkill.setCancelEvent(false);
-        com.ultra.uskill.model.SkillAction soundAction = com.ultra.uskill.model.SkillAction.playSound("ITEM_TRIDENT_THROW", 0.8f, 1.1f);
-        com.ultra.uskill.model.SkillAction particleAction = new com.ultra.uskill.model.SkillAction(com.ultra.uskill.model.SkillAction.ActionType.SPAWN_PARTICLE);
+        com.ultra.ucore.skill.SkillAction soundAction = com.ultra.ucore.skill.SkillAction.playSound("ITEM_TRIDENT_THROW", 0.8f, 1.1f);
+        com.ultra.ucore.skill.SkillAction particleAction = new com.ultra.ucore.skill.SkillAction(com.ultra.ucore.skill.SkillAction.ActionType.SPAWN_PARTICLE);
         particleAction.setParam("particle", "CLOUD");
         particleAction.setParam("count", 12);
         particleAction.setParam("offset", 0.4);
-        com.ultra.uskill.model.SkillAction barAction = com.ultra.uskill.model.SkillAction.actionBar("<blue>🔱 Đinh ba đã lao đi!");
+        com.ultra.ucore.skill.SkillAction barAction = com.ultra.ucore.skill.SkillAction.actionBar("<blue>🔱 Đinh ba đã lao đi!");
         throwSkill.addAction(soundAction);
         throwSkill.addAction(particleAction);
         throwSkill.addAction(barAction);
@@ -573,16 +573,16 @@ public class ItemTemplateGui extends AbstractGui {
         d.setRarity("EPIC");
 
         // Add teleport skill
-        com.ultra.uskill.model.Skill teleportSkill = new com.ultra.uskill.model.Skill("teleport");
+        com.ultra.ucore.skill.Skill teleportSkill = new com.ultra.ucore.skill.Skill("teleport");
         teleportSkill.setDisplayName("<dark_purple>Dịch Chuyển");
-        teleportSkill.setTrigger(com.ultra.uskill.model.SkillTrigger.RIGHT_CLICK);
+        teleportSkill.setTrigger(com.ultra.ucore.skill.SkillTrigger.RIGHT_CLICK);
         teleportSkill.setCooldown(10.0);
         teleportSkill.setCancelEvent(true);
-        com.ultra.uskill.model.SkillAction soundAction = com.ultra.uskill.model.SkillAction.playSound("ENTITY_ENDERMAN_TELEPORT", 1.0f, 1.0f);
-        com.ultra.uskill.model.SkillAction teleportAction = new com.ultra.uskill.model.SkillAction(com.ultra.uskill.model.SkillAction.ActionType.TELEPORT);
+        com.ultra.ucore.skill.SkillAction soundAction = com.ultra.ucore.skill.SkillAction.playSound("ENTITY_ENDERMAN_TELEPORT", 1.0f, 1.0f);
+        com.ultra.ucore.skill.SkillAction teleportAction = new com.ultra.ucore.skill.SkillAction(com.ultra.ucore.skill.SkillAction.ActionType.TELEPORT);
         teleportAction.setParam("y", 0.0);
         teleportAction.setParam("relative", true);
-        com.ultra.uskill.model.SkillAction msgAction = com.ultra.uskill.model.SkillAction.actionBar("<dark_purple>✨ Đã dịch chuyển!");
+        com.ultra.ucore.skill.SkillAction msgAction = com.ultra.ucore.skill.SkillAction.actionBar("<dark_purple>✨ Đã dịch chuyển!");
         teleportSkill.addAction(soundAction);
         teleportSkill.addAction(msgAction);
         SkillDataHelper.setSkills(d, List.of(teleportSkill));
@@ -605,14 +605,14 @@ public class ItemTemplateGui extends AbstractGui {
         d.setRarity("EPIC");
 
         // Add fireball skill
-        com.ultra.uskill.model.Skill fireballSkill = new com.ultra.uskill.model.Skill("fireball");
+        com.ultra.ucore.skill.Skill fireballSkill = new com.ultra.ucore.skill.Skill("fireball");
         fireballSkill.setDisplayName("<red>Fireball");
-        fireballSkill.setTrigger(com.ultra.uskill.model.SkillTrigger.RIGHT_CLICK);
+        fireballSkill.setTrigger(com.ultra.ucore.skill.SkillTrigger.RIGHT_CLICK);
         fireballSkill.setCooldown(5.0);
         fireballSkill.setCancelEvent(true);
-        com.ultra.uskill.model.SkillAction soundAction = com.ultra.uskill.model.SkillAction.playSound("ENTITY_BLAZE_SHOOT", 1.0f, 1.0f);
-        com.ultra.uskill.model.SkillAction fireAction = com.ultra.uskill.model.SkillAction.shootProjectile("SMALL_FIREBALL", 1.6, 7.0);
-        com.ultra.uskill.model.SkillAction msgAction = com.ultra.uskill.model.SkillAction.actionBar("<red>🔥 Fireball!");
+        com.ultra.ucore.skill.SkillAction soundAction = com.ultra.ucore.skill.SkillAction.playSound("ENTITY_BLAZE_SHOOT", 1.0f, 1.0f);
+        com.ultra.ucore.skill.SkillAction fireAction = com.ultra.ucore.skill.SkillAction.shootProjectile("SMALL_FIREBALL", 1.6, 7.0);
+        com.ultra.ucore.skill.SkillAction msgAction = com.ultra.ucore.skill.SkillAction.actionBar("<red>🔥 Fireball!");
         fireballSkill.addAction(soundAction);
         fireballSkill.addAction(fireAction);
         fireballSkill.addAction(msgAction);
