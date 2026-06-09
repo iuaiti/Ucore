@@ -1,0 +1,195 @@
+profile:
+  material: PLAYER_HEAD
+  name: "<gradient:#00FFFF:#FF00FF>Your Profile</gradient>"
+  texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvM2E3ZDY4MjI3MTRlYjU5OGVkYjUyN2JmYjU2YzU3Mjc4MjRlNTZmY2FmYjM4MzNiYzQ3Y2I5YzVhMiJ9fX0="
+  lore:
+    - "<gray>View your player profile</gray>"
+    - ""
+    - "<yellow>Click to view!</yellow>"
+
+quest:
+  material: ENDER_CHEST
+  name: "<gradient:#00FF00:#00FFFF>Quests</gradient>"
+  lore:
+    - "<gray>Complete quests for rewards</gray>"
+    - ""
+    - "<yellow>Click to view!</yellow>"
+
+boss:
+  material: DRAGON_HEAD
+  name: "<gradient:#FF0000:#FF4444>Bosses</gradient>"
+  lore:
+    - "<gray>Fight powerful bosses</gray>"
+    - ""
+    - "<yellow>Click to view!</yellow>"
+
+crates:
+  material: TRIPWIRE_HOOK
+  name: "<gradient:#FFAA00:#FF5500>Crates</gradient>"
+  lore:
+    - "<gray>Open crates for rare items</gray>"
+    - ""
+    - "<yellow>Click to view!</yellow>"
+
+shop:
+  material: EMERALD
+  name: "<gradient:#00FF00:#AAFF00>Shop</gradient>"
+  lore:
+    - "<gray>Browse the server shop</gray>"
+    - ""
+    - "<yellow>Click to view!</yellow>"
+
+collection:
+  material: BOOK
+  name: "<gradient:#FF00FF:#AA00FF>Collections</gradient>"
+  lore:
+    - "<gray>Track your progress</gray>"
+    - ""
+    - "<yellow>Click to view!</yellow>"
+
+settings:
+  material: COMPARATOR
+  name: "<gradient:#AAAAAA:#FFFFFF>Settings</gradient>"
+  lore:
+    - "<gray>Configure your experience</gray>"
+    - ""
+    - "<yellow>Click to view!</yellow>"
+
+server_info:
+  material: MAP
+  name: "<gradient:#00AAFF:#0055FF>Server Info</gradient>"
+  lore:
+    - "<gray>View server information</gray>"
+    - ""
+    - "<yellow>Click to view!</yellow>"
+
+close:
+  material: BARRIER
+  name: "<red>Close</red>"
+  lore:
+    - "<gray>Close the menu</gray>"
+
+back:
+  material: ARROW
+  name: "<yellow>Back</yellow>"
+  lore:
+    - "<gray>Return to previous menu</gray>"
+
+profile_info:
+  material: PLAYER_HEAD
+  name: "<gold><player_name></gold>"
+  lore:
+    - "<gray>Playtime: <yellow><playtime></yellow>"
+    - "<gray>Balance: <yellow>$<balance></yellow>"
+    - "<gray>Rank: <light_purple><rank></light_purple>"
+    - ""
+    - "<gray>Statistics</gray>"
+    - "<dark_gray>Kills: <white><kills></white></dark_gray>"
+    - "<dark_gray>Deaths: <white><deaths></white></dark_gray>"
+    - "<dark_gray>Level: <white><level></white></dark_gray>"
+
+vote_crate:
+  material: CHEST
+  name: "<gradient:#AAFFAA:#00FFAA>Vote Crate</gradient>"
+  lore:
+    - "<gray>Keys: <yellow><vote_keys></yellow></gray>"
+    - ""
+    - "<gray>Contains voting rewards</gray>"
+
+rare_crate:
+  material: CHEST
+  name: "<gradient:#FFAA00:#FF5500>Rare Crate</gradient>"
+  lore:
+    - "<gray>Keys: <yellow><rare_keys></yellow></gray>"
+    - ""
+    - "<gray>Contains rare items</gray>"
+
+divine_crate:
+  material: ENDER_CHEST
+  name: "<gradient:#FF00FF:#AA00FF>Divine Crate</gradient>"
+  lore:
+    - "<gray>Keys: <yellow><divine_keys></yellow></gray>"
+    - ""
+    - "<gray>Contains divine rewards</gray>"
+
+celestial_crate:
+  material: ENDER_CHEST
+  name: "<gradient:#00FFFF:#0088FF>Celestial Crate</gradient>"
+  lore:
+    - "<gray>Keys: <yellow><celestial_keys></yellow></gray>"
+    - ""
+    - "<gray>Contains celestial treasures</gray>"
+
+setting_sound:
+  material: NOTE_BLOCK
+  name: "<green>Sound: <value>Enabled</value></green>"
+  lore:
+    - "<gray>Toggle server sounds</gray>"
+    - ""
+    - "<yellow>Click to toggle</yellow>"
+
+setting_sound_disabled:
+  material: NOTE_BLOCK
+  name: "<red>Sound: Disabled</red>"
+  lore:
+    - "<gray>Toggle server sounds</gray>"
+    - ""
+    - "<yellow>Click to toggle</yellow>"
+
+setting_particles:
+  material: FIREWORK_ROCKET
+  name: "<green>Particles: <value>Enabled</value></green>"
+  lore:
+    - "<gray>Toggle particle effects</gray>"
+    - ""
+    - "<yellow>Click to toggle</yellow>"
+
+setting_particles_disabled:
+  material: FIREWORK_ROCKET
+  name: "<red>Particles: Disabled</red>"
+  lore:
+    - "<gray>Toggle particle effects</gray>"
+    - ""
+    - "<yellow>Click to toggle</yellow>"
+
+setting_pm:
+  material: PLAYER_HEAD
+  name: "<green>Private Messages: <value>Enabled</value></green>"
+  lore:
+    - "<gray>Toggle private messages</gray>"
+    - ""
+    - "<yellow>Click to toggle</yellow>"
+
+setting_pm_disabled:
+  material: PLAYER_HEAD
+  name: "<red>Private Messages: Disabled</red>"
+  lore:
+    - "<gray>Toggle private messages</gray>"
+    - ""
+    - "<yellow>Click to toggle</yellow>"
+
+setting_notifications:
+  material: BELL
+  name: "<green>Notifications: <value>Enabled</value></green>"
+  lore:
+    - "<gray>Toggle notifications</gray>"
+    - ""
+    - "<yellow>Click to toggle</yellow>"
+
+setting_notifications_disabled:
+  material: BELL
+  name: "<red>Notifications: Disabled</red>"
+  lore:
+    - "<gray>Toggle notifications</gray>"
+    - ""
+    - "<yellow>Click to toggle</yellow>"
+
+server_info_display:
+  material: KNOWLEDGE_BOOK
+  name: "<gradient:#00AAFF:#0055FF>Server Information</gradient>"
+  lore:
+    - "<gray>Server: <yellow>Ultra SMP</yellow></gray>"
+    - "<gray>Version: <yellow>1.21</yellow></gray>"
+    - "<gray>Players Online: <yellow><online></yellow></gray>"
+    - "<gray>TPS: <yellow><tps></yellow></gray>"
+    - "<gray>Uptime: <yellow><uptime></yellow></gray>"

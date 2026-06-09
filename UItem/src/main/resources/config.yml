@@ -1,0 +1,104 @@
+# ╔══════════════════════════════════════════╗
+# ║       UItem - Main Configuration         ║
+# ╚══════════════════════════════════════════╝
+
+# Language: "en" = English, "vi" = Vietnamese
+language: "en"
+
+# Language prefix in chat
+prefix: "<gradient:#ff6b6b:#ffd93d><bold>UItem</bold></gradient> <dark_gray>│ "
+
+# Auto-save items when editing via GUI
+auto-save: true
+
+# Allow MiniMessage in display name and lore
+minimessage-support: true
+
+# Storage behavior for items and recipes
+storage:
+  # If true: GUI will also maintain consolidated item.yml / recipe.yml (easier for some users)
+  # If false (recommended): Only individual files like items/<id>.yml and recipes/<id>.yml are used.
+  # Individual files are much better for copy-paste, git, and organization.
+  use-consolidated-files: false
+
+# Integration settings
+
+# GUI search configuration
+gui:
+  search:
+    enabled: true  # Toggle search button in item list GUI
+  items-per-page: 28  # Number of items displayed per page (default matches current hard‑coded value)
+
+# Permissions
+permissions:
+  search: "uitem.search"  # Permission required to use the search feature
+
+integration:
+  # Priority when both Oraxen and ItemsAdder are present
+  # Values: "oraxen", "itemsadder"
+  priority: "oraxen"
+
+  # Auto-detect plugins
+  auto-detect: true
+
+# Debug mode - log additional information
+debug: false
+
+# Resource pack engine
+resourcepack:
+  auto-generate: true
+  auto-apply: false
+  auto-host: true
+  server-port: 9732
+  kick-on-fail: true
+  kick-message: "Không tải được resource packs, vui lòng vào lại\nUnable to load resource packs, please rejoin"
+  url: ""
+  source-texture-folder: "textures"
+  # NEW: Folder for your own custom model .json files (Oraxen / ItemsAdder style)
+  # Put e.g. plugins/UItem/models/my_sword.json  → it will be used instead of auto-generated simple model.
+  # This allows complex models (multiple layers, custom display, 3D, etc.)
+  source-model-folder: "models"
+  pack-format: 34
+  namespace: "uitem"
+  base-model-folder: "assets/minecraft/models/item"
+  model-folder: "assets/uitem/models/item"
+  texture-folder: "assets/uitem/textures/item"
+  output-zip: "UItem-ResourcePack.zip"
+  cmd:
+    storage-file: "custom_model_data.yml"
+
+# How the RP works (similar to Oraxen / ItemsAdder):
+# - Put textures in plugins/UItem/textures/<name>.png
+# - (Optional but powerful) Put ANY custom models in plugins/UItem/models/
+#   The filename does NOT have to match the item ID.
+#
+# In your item config, use "model:" to map (this is the "mém"):
+#   model: "the_model_file_name"               # looks for models/the_model_file_name.json
+#   model: "itemsadder:item/some_ia_model"     # <--- to ném (drop) ItemsAdder models directly!
+#   model: "sub/dir/model"
+#
+# How to use ItemsAdder model:
+# 1. Take the .json model file from ItemsAdder (e.g. some_ia_model.json)
+# 2. Drop it into plugins/UItem/models/some_ia_model.json   (use the name after last / or :)
+# 3. In your UItem item config: model: "itemsadder:item/some_ia_model"
+# 4. The model is copied as-is (its internal texture refs like itemsadder:... are kept)
+# 5. You may also need to provide the referenced textures under assets/itemsadder/textures/... 
+#    (drop extra files in plugins/UItem/resourcepack/assets/...)
+#
+# Plugin will place the model at the correct location in the pack and set the CMD override.
+#
+# Users can drop extra files anywhere in plugins/UItem/resourcepack/ (won't be deleted on re-generate).
+
+# Rarity is now stored in a separate file: plugins/UItem/rarity.yml
+# This makes it much easier to copy-paste entire rarity definitions.
+# The plugin will automatically migrate old rarity: section from here on first load.
+# You can delete the rarity section below after migration.
+
+# Example (for reference only - edit rarity.yml instead):
+# rarity:
+#   MYTHIC:
+#     color: "<gradient:#ff00ff:#00ffff>"
+#     prefix: "<gradient:#ff00ff:#00ffff>✦ MYTHIC"
+#     lore:
+#       - "<dark_gray>──────────────"
+#       - "<gradient:#ff00ff:#00ffff>Mythic"

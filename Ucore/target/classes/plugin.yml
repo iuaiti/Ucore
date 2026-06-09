@@ -1,0 +1,18 @@
+name: UCore
+main: com.ultra.ucore.UCorePlugin
+version: 1.0.0
+api-version: '1.21'
+author: Ultra
+description: Core framework for Ultra network plugins.
+
+commands:
+  ucore:
+    description: Main UCore command.
+    usage: /ucore
+    permission: ucore.command
+
+permissions:
+  ucore.command:
+    default: op
+  ucore.reload:
+    default: op

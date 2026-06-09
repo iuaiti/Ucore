@@ -1,0 +1,67 @@
+name: UItem
+version: 1.0.0
+main: com.uitem.UItemPlugin
+api-version: '1.21'
+folia-supported: true
+description: Ultimate Item - Custom item plugin for Minecraft
+author: iuaititi
+depend: [UCore]
+softdepend: [Oraxen, ItemsAdder, SCore, ExecutableItems]
+license: Delta Softwares License (DSL) - All Rights Reserved - No Redistribution
+commands:
+  uitem:
+    description: UItem main command
+    usage: /uitem|ui <give|editor|reload|list|rp|craft>
+    aliases: [ui]
+    permission: uitem.admin
+  crafting:
+    description: Open the UItem crafting table
+    aliases: [craft]
+permissions:
+  uitem.admin:
+    description: Full access to UItem
+    default: op
+    children:
+      uitem.give: true
+      uitem.editor: true
+      uitem.reload: true
+      uitem.craft: true
+      uitem.search: true
+      uitem.id: true
+      uitem.bulkgive: true
+  uitem.give:
+    description: Allow giving custom items
+    default: op
+  uitem.editor:
+    description: Allow opening item editor
+    default: op
+  uitem.reload:
+    description: Allow reloading plugin
+    default: op
+  uitem.craft:
+    description: Allow opening UItem crafting table and recipe list
+    default: op
+    children:
+      uitem.crafting: true
+  uitem.search:
+    description: Allow using the item search GUI
+    default: op
+  uitem.id:
+    description: View internal item IDs (in recipe lists, details and previews)
+    default: false
+  uitem.bulkgive:
+    description: Allow using the bulk give GUI to give multiple items at once
+    default: op
+
+# =============================================================
+# UItem Public API
+# Entry point: com.uitem.api.UItemAPI
+# Events:
+#   - UItemCreateEvent   (cancellable)
+#   - UItemDeleteEvent   (cancellable)
+#   - UItemGiveEvent     (cancellable + modifiable amount/itemstack)
+#   - UItemInteractEvent (cancellable)
+#   - UItemPickupEvent   (cancellable)
+#   - UItemEquipEvent    (cancellable)
+# =============================================================
+

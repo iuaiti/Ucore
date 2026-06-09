@@ -1,0 +1,49 @@
+# Rarity definitions for UItem.
+# You can copy-paste entire rarity blocks easily.
+# Supports flat style (recommended for copy-paste):
+#   COMMON:
+#     color: "<gray>"
+#     prefix: ""
+#     lore: []
+#
+# Or wrapped under 'rarity:' section.
+
+COMMON:
+  color: "<gray>"
+  prefix: ""
+  lore: []
+
+UNCOMMON:
+  color: "<green>"
+  prefix: "<green>"
+  lore:
+    - "<dark_gray>──────────────"
+    - "<green>Uncommon"
+
+RARE:
+  color: "<blue>"
+  prefix: "<blue>"
+  lore:
+    - "<dark_gray>──────────────"
+    - "<blue>Rare"
+
+EPIC:
+  color: "<dark_purple>"
+  prefix: "<dark_purple>"
+  lore:
+    - "<dark_gray>──────────────"
+    - "<dark_purple>Epic"
+
+LEGENDARY:
+  color: "<gold>"
+  prefix: "<gold>"
+  lore:
+    - "<dark_gray>──────────────"
+    - "<gold>Legendary"
+
+ULTRA:
+  color: "<red>"
+  prefix: "<red>"
+  lore:
+    - "<dark_gray>──────────────"
+    - "<red>✦ ULTRA ✦"

@@ -1,0 +1,228 @@
+main-menu:
+  title: "<gradient:#00FFFF:#FF00FF>Ultra SMP</gradient>"
+  size: 54
+  border:
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    slots:
+      - 0-8
+      - 45-53
+  items:
+    profile:
+      slot: 11
+      item: profile
+      action: OPEN_MENU
+      target: profile
+    quest:
+      slot: 13
+      item: quest
+      action: OPEN_MENU
+      target: quest
+    boss:
+      slot: 15
+      item: boss
+      action: OPEN_MENU
+      target: boss
+    crates:
+      slot: 20
+      item: crates
+      action: OPEN_MENU
+      target: crates
+    shop:
+      slot: 22
+      item: shop
+      action: OPEN_MENU
+      target: shop
+    collection:
+      slot: 24
+      item: collection
+      action: OPEN_MENU
+      target: collection
+    settings:
+      slot: 29
+      item: settings
+      action: OPEN_MENU
+      target: settings
+    server-info:
+      slot: 31
+      item: server_info
+      action: OPEN_MENU
+      target: server-info
+    close:
+      slot: 33
+      item: close
+      action: CLOSE
+
+profile-menu:
+  title: "<gradient:#00FFFF:#FF00FF>Your Profile</gradient>"
+  size: 45
+  border:
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    slots:
+      - 0-8
+      - 36-44
+  items:
+    info:
+      slot: 22
+      item: profile_info
+    back:
+      slot: 40
+      item: back
+      action: BACK
+      target: main
+
+quest-menu:
+  title: "<gradient:#00FFFF:#FF00FF>Quests</gradient>"
+  size: 54
+  border:
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    slots:
+      - 0-8
+      - 45-53
+  content-slots:
+    - 10-16
+    - 19-25
+    - 28-34
+  items:
+    back:
+      slot: 49
+      item: back
+      action: BACK
+      target: main
+
+boss-menu:
+  title: "<gradient:#00FFFF:#FF00FF>Bosses</gradient>"
+  size: 54
+  border:
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    slots:
+      - 0-8
+      - 45-53
+  content-slots:
+    - 10-16
+    - 19-25
+    - 28-34
+  items:
+    back:
+      slot: 49
+      item: back
+      action: BACK
+      target: main
+
+crate-menu:
+  title: "<gradient:#00FFFF:#FF00FF>Crates</gradient>"
+  size: 54
+  border:
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    slots:
+      - 0-8
+      - 45-53
+  items:
+    vote-crate:
+      slot: 11
+      item: vote_crate
+    rare-crate:
+      slot: 13
+      item: rare_crate
+    divine-crate:
+      slot: 15
+      item: divine_crate
+    celestial-crate:
+      slot: 20
+      item: celestial_crate
+    back:
+      slot: 49
+      item: back
+      action: BACK
+      target: main
+
+shop-menu:
+  title: "<gradient:#00FFFF:#FF00FF>Shop</gradient>"
+  size: 54
+  border:
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    slots:
+      - 0-8
+      - 45-53
+  content-slots:
+    - 10-16
+    - 19-25
+    - 28-34
+  items:
+    back:
+      slot: 49
+      item: back
+      action: BACK
+      target: main
+
+collection-menu:
+  title: "<gradient:#00FFFF:#FF00FF>Collections</gradient>"
+  size: 54
+  border:
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    slots:
+      - 0-8
+      - 45-53
+  content-slots:
+    - 10-16
+    - 19-25
+    - 28-34
+  items:
+    back:
+      slot: 49
+      item: back
+      action: BACK
+      target: main
+
+settings-menu:
+  title: "<gradient:#00FFFF:#FF00FF>Settings</gradient>"
+  size: 45
+  border:
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    slots:
+      - 0-8
+      - 36-44
+  items:
+    sound-toggle:
+      slot: 11
+      item: setting_sound
+    particle-toggle:
+      slot: 13
+      item: setting_particles
+    pm-toggle:
+      slot: 15
+      item: setting_pm
+    notifications-toggle:
+      slot: 20
+      item: setting_notifications
+    back:
+      slot: 40
+      item: back
+      action: BACK
+      target: main
+
+server-info-menu:
+  title: "<gradient:#00FFFF:#FF00FF>Server Info</gradient>"
+  size: 45
+  border:
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    slots:
+      - 0-8
+      - 36-44
+  items:
+    info:
+      slot: 22
+      item: server_info_display
+    back:
+      slot: 40
+      item: back
+      action: BACK
+      target: main

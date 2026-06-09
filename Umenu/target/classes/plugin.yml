@@ -1,0 +1,21 @@
+name: UMenu
+main: com.ultra.umenu.UMenuPlugin
+version: 1.0.0
+api-version: '1.21'
+author: Ultra
+description: Central GUI hub for the Ultra network.
+depend:
+  - UCore
+
+commands:
+  menu:
+    description: Open the main menu.
+    usage: /menu
+    permission: umenu.use
+    aliases:
+      - umenu
+
+permissions:
+  umenu.use:
+    description: Allows use of /menu and /umenu.
+    default: true

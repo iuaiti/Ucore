@@ -1,0 +1,13 @@
+prefix:
+  default: "<gradient:#00FFFF:#FF00FF>UCore</gradient> <gray>»</gray>"
+  server-reload: "<prefix> <green>UCore has been reloaded successfully.</green>"
+
+errors:
+  no-permission: "<prefix> <red>You do not have permission.</red>"
+  player-only: "<prefix> <red>Only players can use this command.</red>"
+  unknown-command: "<prefix> <red>Unknown subcommand.</red>"
+
+command:
+  help:
+    - "<prefix> <gray>Available commands:</gray>"
+    - "<aqua>/ucore reload <gray>- Reload configuration files.</gray>"

@@ -1,0 +1,23 @@
+settings:
+  update-interval: 20
+  animated-items: true
+  debug: false
+
+database:
+  type: sqlite
+  sqlite-file: umenu.db
+  mysql:
+    host: localhost
+    port: 3306
+    database: umenu
+    username: root
+    password: password
+    pool-size: 10
+
+modules:
+  auto-detect: true
+  uquest: true
+  uboss: true
+  ucrate: true
+  ucollection: true
+  uitem: true

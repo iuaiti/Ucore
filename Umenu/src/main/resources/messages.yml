@@ -1,0 +1,24 @@
+prefix:
+  default: "<gradient:#00FFFF:#FF00FF>UMenu</gradient> <gray>»</gray>"
+
+errors:
+  no-permission: "<prefix> <red>You do not have permission.</red>"
+  player-only: "<prefix> <red>Only players can use this command.</red>"
+  unknown-command: "<prefix> <red>Unknown subcommand.</red>"
+  menu-not-found: "<prefix> <red>That menu could not be found.</red>"
+
+command:
+  help:
+    - "<prefix> <gray>Available commands:</gray>"
+    - "<aqua>/menu <gray>- Open the main menu.</gray>"
+    - "<aqua>/menu reload <gray>- Reload configuration files.</gray>"
+
+menu:
+  opened: "<prefix> <gray>Opening menu...</gray>"
+  reloaded: "<prefix> <green>UMenu has been reloaded.</green>"
+
+settings:
+  sound-toggled: "<prefix> <gray>Sound has been <value>toggled</value>.</gray>"
+  particles-toggled: "<prefix> <gray>Particles have been <value>toggled</value>.</gray>"
+  pm-toggled: "<prefix> <gray>Private messages have been <value>toggled</value>.</gray>"
+  notifications-toggled: "<prefix> <gray>Notifications have been <value>toggled</value>.</gray>"
