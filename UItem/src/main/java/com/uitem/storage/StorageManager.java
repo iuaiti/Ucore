@@ -406,6 +406,19 @@ public class StorageManager {
             data.setEffects(effs);
         }
 
+        // ── categories ────────────────────────────────────────────────────────
+        List<String> cats = s.getStringList("categories");
+        if (cats != null && !cats.isEmpty()) {
+            data.setCategories(new HashSet<>(cats));
+        }
+
+        // ── required-skill-node ──────────────────────────────────────────────
+        String skillNode = s.getString("required-skill-node");
+        if (skillNode != null && !skillNode.isBlank()) {
+            data.setRequiredSkillNode(skillNode);
+            data.setRequiredSkillLevel(s.getInt("required-skill-level", 1));
+        }
+
         // skills: stored raw — parsed by USkillAPI when needed
         ConfigurationSection skillsSec = s.getConfigurationSection("skills");
         if (skillsSec != null) {
@@ -556,6 +569,17 @@ public class StorageManager {
             cfg.set(id + ".skills", d.getSkillsRaw());
         }
 
+        // Categories
+        if (d.getCategories() != null && !d.getCategories().isEmpty()) {
+            cfg.set(id + ".categories", new ArrayList<>(d.getCategories()));
+        }
+
+        // Skill requirement
+        if (d.getRequiredSkillNode() != null) {
+            cfg.set(id + ".required-skill-node", d.getRequiredSkillNode());
+            cfg.set(id + ".required-skill-level", d.getRequiredSkillLevel());
+        }
+
         // Effects, integrations, model, rarity...
         if (d.getRarity() != null) cfg.set(id + ".rarity", d.getRarity());
         if (d.getModel() != null) cfg.set(id + ".model", d.getModel());
@@ -670,6 +694,11 @@ public class StorageManager {
                     if (e.getValue() != 0) config.set(ep + ".value", e.getValue());
                     if (e.isApplyToTarget()) config.set(ep + ".apply-to-target", true);
                 }
+            }
+
+            // Categories
+            if (d.getCategories() != null && !d.getCategories().isEmpty()) {
+                config.set(path + ".categories", new ArrayList<>(d.getCategories()));
             }
 
             // Skills — stored/loaded as raw data

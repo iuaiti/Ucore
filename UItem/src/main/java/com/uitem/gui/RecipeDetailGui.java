@@ -3,6 +3,7 @@ package com.uitem.gui;
 import com.uitem.UItemData;
 import com.uitem.UItemPlugin;
 import com.uitem.recipe.UItemRecipe;
+import com.uitem.util.SkillRequirementHelper;
 import com.uitem.util.TextUtil;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -13,6 +14,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class RecipeDetailGui extends AbstractGui {
 
@@ -53,10 +56,32 @@ public class RecipeDetailGui extends AbstractGui {
             return;
         }
 
+        // Title with categories
+        List<String> titleLore = new ArrayList<>();
+        titleLore.add("<gray>" + (recipe.isShaped() ? "Shaped 3x3" : "Shapeless"));
+        titleLore.add("<gray>Output: x" + recipe.getResultAmount());
+        if (!recipe.getCategories().isEmpty()) {
+            titleLore.add("");
+            titleLore.add("<gold>Danh mục:</gold>");
+            for (String catKey : recipe.getCategories()) {
+                UItemRecipe.CategoryInfo catInfo = UItemRecipe.getCategoryInfo(catKey);
+                if (catInfo != null) {
+                    titleLore.add("  " + catInfo.getIcon() + " <white>" + catInfo.getDisplayName());
+                }
+            }
+        }
+        if (recipe.hasSkillRequirement()) {
+            titleLore.add("");
+            String reqText = SkillRequirementHelper.getRequirementText(recipe);
+            if (reqText != null) titleLore.add("<gold>Yêu cầu:</gold>");
+            titleLore.add("  " + (reqText != null ? reqText : "<red>Cần mở khóa node skill"));
+            boolean canCraft = SkillRequirementHelper.canCraft(player, recipe);
+            titleLore.add(canCraft ? "<green>✔ Bạn đã mở khóa" : "<red>✘ Bạn chưa đủ cấp độ!");
+        }
+
         setItem(4, createItem(Material.KNOWLEDGE_BOOK,
                 "<gold><bold>" + itemId + "</bold>",
-                List.of("<gray>" + (recipe.isShaped() ? "Shaped 3x3" : "Shapeless"),
-                        "<gray>Output: x" + recipe.getResultAmount())));
+                titleLore));
 
         if (recipe.isShaped()) {
             ItemStack[] matrix = recipe.toMatrix();
@@ -99,6 +124,20 @@ public class RecipeDetailGui extends AbstractGui {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
             new CraftingGui(plugin, player).open();
         });
+
+        // Skill requirement visual
+        if (recipe.hasSkillRequirement()) {
+            boolean canCraft = SkillRequirementHelper.canCraft(player, recipe);
+            List<String> skillLore = new ArrayList<>();
+            skillLore.add(SkillRequirementHelper.getRequirementText(recipe));
+            skillLore.add("");
+            skillLore.add(canCraft ? "<green>✔ Bạn đã mở khóa" : "<red>✘ Bạn chưa đủ cấp độ!");
+            setItem(25, createItem(
+                    canCraft ? Material.EXPERIENCE_BOTTLE : Material.BARRIER,
+                    canCraft ? "<green><bold>✔ Yêu cầu Skill: Đạt</bold>" : "<red><bold>✘ Yêu cầu Skill: Chưa đạt</bold>",
+                    skillLore
+            ));
+        }
     }
 
     private String findIngredientName(ItemStack item, Map<Character, UItemRecipe.Ingredient> map) {

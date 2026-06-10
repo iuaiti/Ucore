@@ -5,6 +5,9 @@ import com.ultra.uskill.api.USkillAPI;
 import com.ultra.uskill.api.USkillProvider;
 import com.ultra.uskill.cooldown.CooldownManager;
 import com.ultra.uskill.execution.SkillExecutor;
+import com.ultra.uskill.tree.SkillTreeManager;
+import com.ultra.uskill.command.SkillTreeCommand;
+import com.ultra.uskill.mana.ManaManager;
 import com.ultra.ucore.skill.Skill;
 import com.ultra.ucore.skill.SkillAction;
 import com.ultra.ucore.skill.SkillCondition;
@@ -13,15 +16,21 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
 
-public final class USkillPlugin extends JavaPlugin implements USkillAPI {
+public final class USkillPlugin extends JavaPlugin implements USkillAPI, Listener {
 
     private static USkillPlugin instance;
     private CooldownManager cooldownManager;
     private SkillExecutor executor;
+    private SkillTreeManager skillTreeManager;
+    private ManaManager manaManager;
 
     @Override
     public void onEnable() {
@@ -45,17 +54,88 @@ public final class USkillPlugin extends JavaPlugin implements USkillAPI {
         UCoreAPI.getPlaceholderManager().register("uskill_version",
                 ctx -> getPluginMeta().getVersion());
 
+        // ─── Skill Tree ───
+        this.skillTreeManager = new SkillTreeManager(this);
+        this.skillTreeManager.load();
+
+        // Register /skilltree command
+        SkillTreeCommand skillTreeCmd = new SkillTreeCommand(this, this.skillTreeManager);
+        var cmd = getCommand("skilltree");
+        if (cmd != null) {
+            cmd.setExecutor(skillTreeCmd);
+            cmd.setTabCompleter(skillTreeCmd);
+        }
+
+        // ─── Mana System ───
+        saveDefaultConfig();
+        this.manaManager = new ManaManager(this, this.skillTreeManager);
+        this.manaManager.start();
+
+        UCoreAPI.getPlaceholderManager().register("mana",
+                ctx -> ctx.player() != null ? String.valueOf((int) manaManager.getMana(ctx.player())) : "0");
+        UCoreAPI.getPlaceholderManager().register("max_mana",
+                ctx -> ctx.player() != null ? String.valueOf((int) manaManager.getMaxMana(ctx.player())) : "0");
+        UCoreAPI.getPlaceholderManager().register("mana_percent",
+                ctx -> {
+                    if (ctx.player() == null) return "0";
+                    double max = manaManager.getMaxMana(ctx.player());
+                    if (max <= 0) return "0";
+                    return String.valueOf((int) ((manaManager.getMana(ctx.player()) / max) * 100));
+                });
+
+        // Register join/quit events for skill tree stats
+        Bukkit.getPluginManager().registerEvents(this, this);
+
         getLogger().info("╔══════════════════════════════════════════════╗");
         getLogger().info("║        ⚡ USkill v" + getPluginMeta().getVersion() + " — Skill Engine");
         getLogger().info("║        ◆ UCore bridge: active");
+        getLogger().info("║        ◆ Skill Tree: " + skillTreeManager.getNodeCount() + " nodes loaded");
         getLogger().info("╚══════════════════════════════════════════════╝");
     }
 
     @Override
     public void onDisable() {
         UCoreAPI.getPlaceholderManager().unregister("uskill_version");
+        if (manaManager != null) manaManager.stop();
+        if (skillTreeManager != null) {
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                skillTreeManager.onPlayerQuit(p);
+            }
+        }
         USkillProvider.unregister();
         instance = null;
+    }
+
+    public ManaManager getManaManager() {
+        return manaManager;
+    }
+
+    public SkillTreeManager getSkillTreeManager() {
+        return skillTreeManager;
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        if (skillTreeManager != null) {
+            skillTreeManager.onPlayerJoin(event.getPlayer());
+        }
+    }
+
+    @EventHandler
+    public void onPlayerQuitEvent(PlayerQuitEvent event) {
+        onPlayerQuit(event.getPlayer());
+    }
+
+    @Override
+    public void onPlayerQuit(Player player) {
+        if (skillTreeManager != null) {
+            skillTreeManager.onPlayerQuit(player);
+        }
+        if (manaManager != null) {
+            manaManager.onPlayerQuit(player);
+        }
+        cooldownManager.onPlayerQuit(player);
+        executor.clearPlayer(player);
     }
 
     public static USkillPlugin getInstance() {
@@ -103,11 +183,6 @@ public final class USkillPlugin extends JavaPlugin implements USkillAPI {
 
     @Override
     public void unregister(Player player) {
-    }
-
-    @Override
-    public void onPlayerQuit(Player player) {
-        cooldownManager.onPlayerQuit(player);
     }
 
     @Override

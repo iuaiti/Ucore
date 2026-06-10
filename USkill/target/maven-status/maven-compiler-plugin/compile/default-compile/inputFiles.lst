@@ -1,7 +1,17 @@
 /workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/USkillPlugin.java
 /workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/api/USkillAPI.java
 /workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/api/USkillProvider.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/command/SkillTreeCommand.java
 /workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/cooldown/CooldownManager.java
 /workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/effect/PotionAuraManager.java
 /workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/effect/PotionEffectHelper.java
 /workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/execution/SkillExecutor.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/mana/ManaManager.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/tree/PlayerSkillData.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/tree/PlayerStats.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/tree/SkillTreeManager.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/tree/SkillTreeNode.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/tree/StatType.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/tree/gui/SkillDetailGui.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/tree/gui/SkillStatsGui.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/tree/gui/SkillTreeGui.java

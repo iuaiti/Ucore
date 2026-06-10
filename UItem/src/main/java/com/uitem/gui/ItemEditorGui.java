@@ -5,7 +5,9 @@ import com.uitem.UItemPlugin;
 import com.uitem.legacy.skill.SkillDataHelper;
 import com.uitem.legacy.skill.gui.SkillListGui;
 import com.uitem.rarity.RarityConfig;
+import com.uitem.recipe.UItemRecipe;
 import com.uitem.util.Messages;
+import com.uitem.util.SkillRequirementHelper;
 import com.uitem.util.TextUtil;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -17,6 +19,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * GUI chỉnh sửa một custom item.
@@ -355,8 +358,36 @@ public class ItemEditorGui extends AbstractGui {
                     });
         });
 
-        // === Manage Rarities (new button for full GUI management) ===
-        setItem(30, createItem(Material.NETHER_STAR,
+        // === Danh Mục (categories) - slots 28-34 và 37 ===
+        int[] CAT_SLOTS = {28, 29, 30, 31, 32, 33, 34, 37};
+        int catIdx = 0;
+        for (Map.Entry<String, UItemRecipe.CategoryInfo> catEntry : UItemRecipe.getAllCategories().entrySet()) {
+            if (catIdx >= CAT_SLOTS.length) break;
+            int slot = CAT_SLOTS[catIdx];
+            String catKey = catEntry.getKey();
+            UItemRecipe.CategoryInfo catInfo = catEntry.getValue();
+            boolean active = data.getCategories().contains(catKey);
+            Material catMat;
+            try { catMat = Material.valueOf(catInfo.getIconMaterial()); }
+            catch (IllegalArgumentException e) { catMat = Material.PAPER; }
+
+            setItem(slot, createItem(
+                    active ? Material.LIME_DYE : catMat,
+                    (active ? "<green><bold>" : "<white>") + catInfo.getIcon() + " " + catInfo.getDisplayName(),
+                    List.of(
+                            "<gray>" + catInfo.getDisplayName(),
+                            active ? "<green>✓ Đã chọn" : "<gray>Chưa chọn",
+                            active ? "<yellow>Click để bỏ" : "<yellow>Click để thêm"
+                    )), event -> {
+                data.toggleCategory(catKey);
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
+                saveAndRefresh();
+            });
+            catIdx++;
+        }
+
+        // === Manage Rarities (moved to slot 38) ===
+        setItem(38, createItem(Material.NETHER_STAR,
                 "<gold><bold>⚙ Quản lý Rarities</bold>",
                 List.of(
                         "<gray>Mở danh sách rarity để tạo/sửa/xóa",
@@ -486,6 +517,51 @@ public class ItemEditorGui extends AbstractGui {
             new EffectEditorGui(plugin, player, data).openAsChildOf(this);
         });
  
+        // === Skill Requirement (slot 39) ===
+        setItem(39, createItem(
+                data.hasSkillRequirement() ? Material.EXPERIENCE_BOTTLE : Material.GRAY_DYE,
+                "<yellow><bold>⚡ Yêu Cầu Cấp Độ Skill</bold>",
+                List.of(
+                        data.hasSkillRequirement()
+                                ? "<gray>Node: <white>" + data.getRequiredSkillNode() + " <gray>Cấp: <white>" + data.getRequiredSkillLevel()
+                                : "<gray>Chưa đặt yêu cầu",
+                        "",
+                        "<yellow>Click để đặt / sửa",
+                        "<red>Shift+Click để xóa"
+                )), event -> {
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
+            if (event.isShiftClick()) {
+                data.setRequiredSkillNode(null);
+                data.setRequiredSkillLevel(1);
+                saveAndRefresh();
+                player.sendMessage(TextUtil.info("Đã xóa yêu cầu cấp độ skill!"));
+                return;
+            }
+            plugin.getChatInputManager().requestInput(player,
+                    "<yellow>Nhập ID của skill node yêu cầu (vd: mining, woodcutting):",
+                    input -> {
+                        String nodeId = input.trim();
+                        if (nodeId.isBlank()) {
+                            player.sendMessage(TextUtil.error("Node ID không được để trống!"));
+                            return;
+                        }
+                        data.setRequiredSkillNode(nodeId);
+                        plugin.getChatInputManager().requestInput(player,
+                                "<yellow>Nhập cấp độ yêu cầu (số nguyên >= 1):",
+                                levelInput -> {
+                                    try {
+                                        int level = Integer.parseInt(levelInput.trim());
+                                        if (level < 1) level = 1;
+                                        data.setRequiredSkillLevel(level);
+                                        saveAndReopen();
+                                        player.sendMessage(TextUtil.success("Đã đặt yêu cầu: " + nodeId + " cấp " + level));
+                                    } catch (NumberFormatException e) {
+                                        player.sendMessage(TextUtil.error("Số không hợp lệ!"));
+                                    }
+                                });
+                    });
+        });
+
         // === Quick Actions (slot 47) - Duplicate item ===
         setItem(47, createItem(Material.PAPER,
                 "<aqua><bold>📋 Nhân Bản Item</bold>",
@@ -525,6 +601,9 @@ public class ItemEditorGui extends AbstractGui {
                         newData.setMaxDurability(data.getMaxDurability());
                         newData.setRarity(data.getRarity());
                         newData.setModel(data.getModel());
+                        newData.setCategories(data.getCategories());
+                        newData.setRequiredSkillNode(data.getRequiredSkillNode());
+                        newData.setRequiredSkillLevel(data.getRequiredSkillLevel());
                         for (UItemData.AttributeData a : data.getAttributes()) newData.getAttributes().add(a.copy());
                         for (UItemData.ItemEffect e : data.getEffects()) newData.getEffects().add(e.copy());
                         java.util.List<com.ultra.ucore.skill.Skill> clonedSkills = new java.util.ArrayList<>();

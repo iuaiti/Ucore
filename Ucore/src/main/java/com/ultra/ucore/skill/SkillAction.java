@@ -35,7 +35,33 @@ public class SkillAction {
         CLEAR_EFFECTS("Clear all effects"),
         LEVITATE("Levitate"),
         SPAWN_MOB("Spawn mob"),
-        FREEZE("Freeze target");
+        FREEZE("Freeze target"),
+        BEAM("Beam projectile"),
+        CIRCLE("Circle AoE"),
+        CONE("Cone AoE"),
+        PULL("Pull target"),
+        PUSH("Push target"),
+        THROW_ENTITY("Throw entity"),
+        ROCKET("Rocket launch"),
+        LIGHTNING_STORM("Lightning storm"),
+        BOMB("Throw bomb"),
+        WARP("Warp forward"),
+        GROUND_SLAM("Ground slam"),
+        FIRE_TRAIL("Fire trail"),
+        ICE_TRAIL("Ice trail"),
+        BLINK("Blink teleport"),
+        SHIELD("Damage shield"),
+        RECALL("Recall"),
+        SMITE("Smite nearby"),
+        FIRE_NOVA("Fire nova"),
+        ICE_PRISON("Ice prison"),
+        ROOT("Root target"),
+        DISARM("Disarm target"),
+        POISON_CLOUD("Poison cloud"),
+        HEALING_CIRCLE("Healing circle"),
+        SUMMON_TOTEM("Summon totem"),
+        DASH("Dash forward"),
+        CONSUME_MANA("Consume mana");
 
         private final String display;
 
@@ -243,6 +269,178 @@ public class SkillAction {
     public static SkillAction freeze(int duration) {
         SkillAction a = new SkillAction(ActionType.FREEZE);
         a.setParam("duration", duration);
+        return a;
+    }
+
+    public static SkillAction beam(double damage, double range, double radius) {
+        SkillAction a = new SkillAction(ActionType.BEAM);
+        a.setParam("damage", damage);
+        a.setParam("range", range);
+        a.setParam("radius", radius);
+        return a;
+    }
+
+    public static SkillAction circle(double damage, double radius) {
+        SkillAction a = new SkillAction(ActionType.CIRCLE);
+        a.setParam("damage", damage);
+        a.setParam("radius", radius);
+        return a;
+    }
+
+    public static SkillAction cone(double damage, double range, double angle) {
+        SkillAction a = new SkillAction(ActionType.CONE);
+        a.setParam("damage", damage);
+        a.setParam("range", range);
+        a.setParam("angle", angle);
+        return a;
+    }
+
+    public static SkillAction pull(double power) {
+        SkillAction a = new SkillAction(ActionType.PULL);
+        a.setParam("power", power);
+        return a;
+    }
+
+    public static SkillAction push(double power) {
+        SkillAction a = new SkillAction(ActionType.PUSH);
+        a.setParam("power", power);
+        return a;
+    }
+
+    public static SkillAction throwEntity(double power) {
+        SkillAction a = new SkillAction(ActionType.THROW_ENTITY);
+        a.setParam("power", power);
+        return a;
+    }
+
+    public static SkillAction rocket(double power) {
+        SkillAction a = new SkillAction(ActionType.ROCKET);
+        a.setParam("power", power);
+        return a;
+    }
+
+    public static SkillAction lightningStorm(int count, double radius) {
+        SkillAction a = new SkillAction(ActionType.LIGHTNING_STORM);
+        a.setParam("count", count);
+        a.setParam("radius", radius);
+        return a;
+    }
+
+    public static SkillAction bomb(double damage, double power, boolean fire) {
+        SkillAction a = new SkillAction(ActionType.BOMB);
+        a.setParam("damage", damage);
+        a.setParam("power", power);
+        a.setParam("fire", fire);
+        return a;
+    }
+
+    public static SkillAction warp(double distance) {
+        SkillAction a = new SkillAction(ActionType.WARP);
+        a.setParam("distance", distance);
+        return a;
+    }
+
+    public static SkillAction groundSlam(double damage, double radius) {
+        SkillAction a = new SkillAction(ActionType.GROUND_SLAM);
+        a.setParam("damage", damage);
+        a.setParam("radius", radius);
+        return a;
+    }
+
+    public static SkillAction fireTrail(int duration, int intervalTicks) {
+        SkillAction a = new SkillAction(ActionType.FIRE_TRAIL);
+        a.setParam("duration", duration);
+        a.setParam("interval", intervalTicks);
+        return a;
+    }
+
+    public static SkillAction iceTrail(int duration, int intervalTicks) {
+        SkillAction a = new SkillAction(ActionType.ICE_TRAIL);
+        a.setParam("duration", duration);
+        a.setParam("interval", intervalTicks);
+        return a;
+    }
+
+    public static SkillAction blink(double distance) {
+        SkillAction a = new SkillAction(ActionType.BLINK);
+        a.setParam("distance", distance);
+        return a;
+    }
+
+    public static SkillAction shield(double absorption, int duration) {
+        SkillAction a = new SkillAction(ActionType.SHIELD);
+        a.setParam("absorption", absorption);
+        a.setParam("duration", duration);
+        return a;
+    }
+
+    public static SkillAction recall() {
+        return new SkillAction(ActionType.RECALL);
+    }
+
+    public static SkillAction smite(double damage, double radius) {
+        SkillAction a = new SkillAction(ActionType.SMITE);
+        a.setParam("damage", damage);
+        a.setParam("radius", radius);
+        return a;
+    }
+
+    public static SkillAction fireNova(double damage, double radius) {
+        SkillAction a = new SkillAction(ActionType.FIRE_NOVA);
+        a.setParam("damage", damage);
+        a.setParam("radius", radius);
+        return a;
+    }
+
+    public static SkillAction icePrison(int duration) {
+        SkillAction a = new SkillAction(ActionType.ICE_PRISON);
+        a.setParam("duration", duration);
+        return a;
+    }
+
+    public static SkillAction root(int duration) {
+        SkillAction a = new SkillAction(ActionType.ROOT);
+        a.setParam("duration", duration);
+        return a;
+    }
+
+    public static SkillAction disarm(int duration) {
+        SkillAction a = new SkillAction(ActionType.DISARM);
+        a.setParam("duration", duration);
+        return a;
+    }
+
+    public static SkillAction poisonCloud(double damage, double radius, int duration) {
+        SkillAction a = new SkillAction(ActionType.POISON_CLOUD);
+        a.setParam("damage", damage);
+        a.setParam("radius", radius);
+        a.setParam("duration", duration);
+        return a;
+    }
+
+    public static SkillAction healingCircle(double heal, double radius) {
+        SkillAction a = new SkillAction(ActionType.HEALING_CIRCLE);
+        a.setParam("heal", heal);
+        a.setParam("radius", radius);
+        return a;
+    }
+
+    public static SkillAction summonTotem(String entityType, int duration) {
+        SkillAction a = new SkillAction(ActionType.SUMMON_TOTEM);
+        a.setParam("entity", entityType);
+        a.setParam("duration", duration);
+        return a;
+    }
+
+    public static SkillAction dash(double distance) {
+        SkillAction a = new SkillAction(ActionType.DASH);
+        a.setParam("distance", distance);
+        return a;
+    }
+
+    public static SkillAction consumeMana(double amount) {
+        SkillAction a = new SkillAction(ActionType.CONSUME_MANA);
+        a.setParam("amount", amount);
         return a;
     }
 

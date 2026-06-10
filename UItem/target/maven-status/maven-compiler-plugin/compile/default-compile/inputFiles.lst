@@ -56,4 +56,5 @@
 /workspaces/Ucore/UItem/src/main/java/com/uitem/util/Messages.java
 /workspaces/Ucore/UItem/src/main/java/com/uitem/util/PotionEffectRegistry.java
 /workspaces/Ucore/UItem/src/main/java/com/uitem/util/SchedulerUtil.java
+/workspaces/Ucore/UItem/src/main/java/com/uitem/util/SkillRequirementHelper.java
 /workspaces/Ucore/UItem/src/main/java/com/uitem/util/TextUtil.java

@@ -1,0 +1,229 @@
+# ─── Skill Tree Configuration ───
+# Each skill is a node in the tree.
+# Players spend Skill Points (SP) to unlock/upgrade skills.
+# Each level grants stats (chỉ số) defined in stats-per-level.
+
+default-points: 10
+
+skills:
+  # ═══ TIER 1 - Basic ═══
+  strength:
+    display-name: "Strength"
+    description:
+      - "<gray>Increase your raw physical power."
+    icon: IRON_SWORD
+    slot: 20
+    max-level: 5
+    cost-per-level: [1, 2, 3, 4, 5]
+    prerequisites: []
+    required-level: 1
+    stats-per-level:
+      DAMAGE: 0.5
+
+  vitality:
+    display-name: "Vitality"
+    description:
+      - "<gray>Boost your maximum health."
+    icon: GOLDEN_APPLE
+    slot: 22
+    max-level: 5
+    cost-per-level: [1, 2, 3, 4, 5]
+    prerequisites: []
+    required-level: 1
+    stats-per-level:
+      MAX_HEALTH: 2.0
+
+  agility:
+    display-name: "Agility"
+    description:
+      - "<gray>Move faster and strike quicker."
+    icon: FEATHER
+    slot: 24
+    max-level: 5
+    cost-per-level: [1, 2, 3, 4, 5]
+    prerequisites: []
+    required-level: 1
+    stats-per-level:
+      MOVEMENT_SPEED: 3.0
+      ATTACK_SPEED: 2.0
+
+  # ═══ TIER 2 - Intermediate ═══
+  warrior:
+    display-name: "Warrior"
+    description:
+      - "<gray>Become a true warrior."
+      - "<gray>Combines strength and defense."
+    icon: SHIELD
+    slot: 28
+    max-level: 5
+    cost-per-level: [2, 3, 5, 7, 10]
+    prerequisites:
+      - strength
+      - vitality
+    required-level: 5
+    stats-per-level:
+      DAMAGE: 1.0
+      DEFENSE: 1.0
+      MAX_HEALTH: 1.0
+
+  assassin:
+    display-name: "Assassin"
+    description:
+      - "<gray>Deadly strikes and critical hits."
+    icon: DIAMOND_SWORD
+    slot: 30
+    max-level: 5
+    cost-per-level: [2, 3, 5, 7, 10]
+    prerequisites:
+      - agility
+      - strength
+    required-level: 5
+    stats-per-level:
+      CRIT_CHANCE: 2.0
+      CRIT_DAMAGE: 5.0
+      DAMAGE: 0.5
+
+  mage:
+    display-name: "Mage"
+    description:
+      - "<gray>Master of magical energies."
+    icon: BLAZE_ROD
+    slot: 32
+    max-level: 5
+    cost-per-level: [2, 3, 5, 7, 10]
+    prerequisites:
+      - agility
+      - vitality
+    required-level: 5
+    stats-per-level:
+      MANA: 5.0
+      MANA_REGEN: 1.0
+      LUCK: 1.0
+
+  healer:
+    display-name: "Healer"
+    description:
+      - "<gray>Restore health and support allies."
+    icon: POTION
+    slot: 34
+    max-level: 5
+    cost-per-level: [2, 3, 5, 7, 10]
+    prerequisites:
+      - vitality
+    required-level: 5
+    stats-per-level:
+      REGENERATION: 1.0
+      ABSORPTION: 1.0
+      MAX_HEALTH: 1.0
+
+  # ═══ TIER 3 - Advanced ═══
+  berserker:
+    display-name: "Berserker"
+    description:
+      - "<gray>Unleash raw fury."
+      - "<gray>High damage, lifesteal, thorns."
+    icon: NETHERITE_AXE
+    slot: 38
+    max-level: 5
+    cost-per-level: [5, 8, 12, 16, 20]
+    prerequisites:
+      - warrior
+      - assassin
+    required-level: 10
+    stats-per-level:
+      DAMAGE: 2.0
+      LIFE_STEAL: 1.0
+      THORNS: 1.0
+
+  paladin:
+    display-name: "Paladin"
+    description:
+      - "<gray>Holy knight with balanced power."
+    icon: ENCHANTED_GOLDEN_APPLE
+    slot: 40
+    max-level: 5
+    cost-per-level: [5, 8, 12, 16, 20]
+    prerequisites:
+      - warrior
+      - healer
+    required-level: 10
+    stats-per-level:
+      DEFENSE: 2.0
+      ABSORPTION: 2.0
+      FIRE_RESISTANCE: 1.0
+      MAX_HEALTH: 1.0
+
+  sorcerer:
+    display-name: "Sorcerer"
+    description:
+      - "<gray>Ultimate magic wielder."
+    icon: ENDER_CHEST
+    slot: 42
+    max-level: 5
+    cost-per-level: [5, 8, 12, 16, 20]
+    prerequisites:
+      - mage
+      - assassin
+    required-level: 10
+    stats-per-level:
+      MANA: 10.0
+      MANA_REGEN: 2.0
+      LUCK: 2.0
+      CRIT_DAMAGE: 5.0
+
+  # ═══ TIER 4 - Master ═══
+  titan:
+    display-name: "Titan"
+    description:
+      - "<gray>Become an unstoppable force."
+    icon: BEDROCK
+    slot: 46
+    max-level: 3
+    cost-per-level: [20, 30, 50]
+    prerequisites:
+      - berserker
+      - paladin
+    required-level: 20
+    stats-per-level:
+      MAX_HEALTH: 5.0
+      DEFENSE: 4.0
+      DAMAGE: 3.0
+      REGENERATION: 2.0
+
+  archmage:
+    display-name: "Archmage"
+    description:
+      - "<gray>Transcend mortal magic."
+    icon: DRAGON_HEAD
+    slot: 48
+    max-level: 3
+    cost-per-level: [20, 30, 50]
+    prerequisites:
+      - sorcerer
+      - paladin
+    required-level: 20
+    stats-per-level:
+      MANA: 20.0
+      MANA_REGEN: 3.0
+      LUCK: 4.0
+      CRIT_DAMAGE: 10.0
+      ABSORPTION: 2.0
+
+  shadow:
+    display-name: "Shadow Lord"
+    description:
+      - "<gray>Master of darkness and death."
+    icon: WITHER_SKELETON_SKULL
+    slot: 50
+    max-level: 3
+    cost-per-level: [20, 30, 50]
+    prerequisites:
+      - berserker
+      - sorcerer
+    required-level: 20
+    stats-per-level:
+      DAMAGE: 5.0
+      LIFE_STEAL: 3.0
+      CRIT_CHANCE: 5.0
+      CRIT_DAMAGE: 10.0
+      MOVEMENT_SPEED: 5.0

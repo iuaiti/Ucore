@@ -6,3 +6,12 @@ folia-supported: true
 description: Skill engine plugin for Ultra network
 author: iuaititi
 depend: [UCore]
+commands:
+  skilltree:
+    description: "Open the skill tree GUI"
+    aliases: [st, skills, skill]
+    usage: "/skilltree [open|points|reset|reload|giveall]"
+permissions:
+  uskill.admin:
+    description: "Admin access to USkill commands"
+    default: op

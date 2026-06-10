@@ -227,7 +227,7 @@ module-uskill:
       slot: 43
       item: uskill_link
       action: COMMAND
-      target: "uskill"
+      target: "skilltree"
 
 warp-menu:
   title: "<gradient:#AAFFAA:#00FFAA>Warps</gradient>"

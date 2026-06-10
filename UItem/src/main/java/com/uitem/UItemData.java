@@ -45,6 +45,13 @@ public class UItemData {
     // Or full "uitem:item/some_path" or even different namespace.
     private String model;
 
+    // Recipe/Item categories for classification (VU_KHI, GIAP, CONG_CU, etc.)
+    private Set<String> categories = new HashSet<>();
+
+    // Skill tree requirement — player must have this node at required level to craft/use
+    private String requiredSkillNode;
+    private int requiredSkillLevel = 1;
+
     public UItemData(String id) {
         this.id = id;
         this.material = Material.STONE;
@@ -64,6 +71,7 @@ public class UItemData {
         this.effects = new ArrayList<>();
         this.skillsRaw = new LinkedHashMap<>();
         this.model = null;
+        this.categories = new HashSet<>();
     }
 
     // === Getters & Setters ===
@@ -208,6 +216,22 @@ public class UItemData {
         this.model = (model != null && !model.isBlank()) ? model : null;
     }
 
+    public Set<String> getCategories() { return categories; }
+    public void setCategories(Set<String> categories) { this.categories = categories != null ? new HashSet<>(categories) : new HashSet<>(); }
+    public void addCategory(String category) { categories.add(category); }
+    public void removeCategory(String category) { categories.remove(category); }
+    public boolean hasCategory(String category) { return categories.contains(category); }
+    public void toggleCategory(String category) {
+        if (categories.contains(category)) categories.remove(category);
+        else categories.add(category);
+    }
+
+    public String getRequiredSkillNode() { return requiredSkillNode; }
+    public void setRequiredSkillNode(String node) { this.requiredSkillNode = (node != null && !node.isBlank()) ? node : null; }
+    public int getRequiredSkillLevel() { return requiredSkillLevel; }
+    public void setRequiredSkillLevel(int level) { this.requiredSkillLevel = Math.max(1, level); }
+    public boolean hasSkillRequirement() { return requiredSkillNode != null; }
+
     /**
      * General effect that can be attached to a custom item.
      * Supports reflect damage, extra damage on various triggers.
@@ -276,6 +300,9 @@ public class UItemData {
         }
         clone.skillsRaw = new LinkedHashMap<>(this.skillsRaw);
         clone.model = this.model;
+        clone.categories = new HashSet<>(this.categories);
+        clone.requiredSkillNode = this.requiredSkillNode;
+        clone.requiredSkillLevel = this.requiredSkillLevel;
         return clone;
     }
 

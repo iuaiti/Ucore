@@ -251,12 +251,12 @@ uitem_link:
     - "<green>Click to open!</green>"
 
 uskill_link:
-  material: BLAZE_POWDER
-  name: "<gradient:#FF00FF:#AA00FF><bold>USkill</bold></gradient>"
+  material: NETHER_STAR
+  name: "<gradient:#FF6B35:#FFD700><bold>Skill Tree</bold></gradient>"
   lore:
-    - "<gray>Skill engine active</gray>"
+    - "<gray>Unlock skills and upgrade stats</gray>"
     - ""
-    - "<green>Click to open!</green>"
+    - "<green>Click to open skill tree!</green>"
 
 warp_arena:
   material: DIAMOND_SWORD

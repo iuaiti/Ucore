@@ -3,6 +3,7 @@ package com.uitem.gui;
 import com.uitem.UItemData;
 import com.uitem.UItemPlugin;
 import com.uitem.recipe.UItemRecipe;
+import com.uitem.util.SkillRequirementHelper;
 import com.uitem.util.TextUtil;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -26,7 +27,10 @@ public class RecipeEditorGui implements InventoryHolder {
     private static final int SAVE_SHAPELESS_SLOT = 40;
     private static final int CLEAR_SLOT = 42;
     private static final int RESULT_AMOUNT_SLOT = 39;
-    private static final int GIVE_CURRENT_SLOT = 41;  // Easy way to grab this custom item to use as ingredient in other recipes
+    private static final int GIVE_CURRENT_SLOT = 41;
+
+    private static final int[] CATEGORY_SLOTS = {13, 14, 15, 16, 22, 24, 25, 31};
+    private static final int GUIDE_SLOT = 32;
 
     private final UItemPlugin plugin;
     private final Player player;
@@ -34,6 +38,9 @@ public class RecipeEditorGui implements InventoryHolder {
     private Inventory inventory;
     private UItemRecipe existingRecipe;
     private int resultAmount = 1;
+    private Set<String> categories = new HashSet<>();
+    private String requiredSkillNode;
+    private int requiredSkillLevel = 1;
 
     public RecipeEditorGui(UItemPlugin plugin, Player player, UItemData data) {
         this.plugin = plugin;
@@ -42,14 +49,20 @@ public class RecipeEditorGui implements InventoryHolder {
         this.existingRecipe = plugin.getRecipeManager().getRecipe(data.getId());
         if (this.existingRecipe != null) {
             this.resultAmount = Math.max(1, Math.min(64, this.existingRecipe.getResultAmount()));
+            this.categories = new HashSet<String>(this.existingRecipe.getCategories());
         }
         this.inventory = org.bukkit.Bukkit.createInventory(this, GUI_SIZE,
                 TextUtil.parse("<gold>Công thức: <white>" + data.getId()));
+        if (this.existingRecipe != null) {
+            this.resultAmount = Math.max(1, Math.min(64, this.existingRecipe.getResultAmount()));
+            this.categories = new HashSet<String>(this.existingRecipe.getCategories());
+            this.requiredSkillNode = this.existingRecipe.getRequiredSkillNode();
+            this.requiredSkillLevel = this.existingRecipe.getRequiredSkillLevel();
+        }
         initialize();
     }
 
     private void initialize() {
-        // Prettier editor theme
         ItemStack border = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta meta = border.getItemMeta();
         if (meta != null) {
@@ -97,15 +110,37 @@ public class RecipeEditorGui implements InventoryHolder {
         ItemStack preview = plugin.getItemManager().buildPreviewItemStack(data);
         preview.setAmount(resultAmount);
         inventory.setItem(RESULT_SLOT, preview);
-        inventory.setItem(RESULT_SLOT + 9, createInfoItem(Material.KNOWLEDGE_BOOK,
+
+        // Category toggle buttons
+        int catIdx = 0;
+        for (Map.Entry<String, UItemRecipe.CategoryInfo> catEntry : UItemRecipe.getAllCategories().entrySet()) {
+            if (catIdx >= CATEGORY_SLOTS.length) break;
+            String catKey = catEntry.getKey();
+            UItemRecipe.CategoryInfo catInfo = catEntry.getValue();
+            boolean active = categories.contains(catKey);
+            Material catMat;
+            try {
+                catMat = Material.valueOf(catInfo.getIconMaterial());
+            } catch (IllegalArgumentException e) {
+                catMat = Material.PAPER;
+            }
+
+            inventory.setItem(CATEGORY_SLOTS[catIdx], createCategoryItem(catMat,
+                    catInfo.getIcon() + " " + catInfo.getDisplayName(), active));
+            catIdx++;
+        }
+
+        // Guide
+        inventory.setItem(GUIDE_SLOT, createInfoItem(Material.KNOWLEDGE_BOOK,
                 "<gold><bold>Hướng Dẫn</bold>",
                 List.of(
-                        "<gray>Đặt nguyên liệu (vanilla hoặc UItem) bên trái",
+                        "<gray>Đặt nguyên liệu bên trái",
                         "<gray>Kết quả: item này x" + resultAmount,
                         "<yellow>Mẹo: /uitem give <id> rồi kéo vào đây",
-                        "<yellow>Kích thước stack = số lượng nguyên liệu cần",
                         "",
-                        "<green>Shaped</green> <gray>lưu theo mẫu | <aqua>Shapeless</aqua> <gray>bất kỳ thứ tự"
+                        "<green>Shape</green> <gray>lưu mẫu | <aqua>Shapeless</aqua> <gray>bất kỳ",
+                        "<gray>Bấm danh mục bên phải để phân loại",
+                        "<gray>Bấm ⚡ Skill để đặt yêu cầu cấp độ"
                 )));
 
         inventory.setItem(SAVE_SHAPED_SLOT, createInfoItem(Material.GREEN_STAINED_GLASS_PANE,
@@ -118,7 +153,9 @@ public class RecipeEditorGui implements InventoryHolder {
                 "<red><bold>Xóa Công Thức</bold>",
                 List.of("<gray>Xóa công thức hiện tại")));
 
-        // Result amount editor button
+        // Skill requirement button
+        updateSkillRequirementDisplay();
+
         inventory.setItem(RESULT_AMOUNT_SLOT, createInfoItem(Material.GOLD_INGOT,
                 "<gold><bold>Số Lượng Kết Quả: x" + resultAmount + "</bold>",
                 List.of(
@@ -127,7 +164,6 @@ public class RecipeEditorGui implements InventoryHolder {
                         "<yellow>1 - 64 item mỗi lần chế"
                 )));
 
-        // Quick "get this item" button - makes using custom UItem as ingredient for other recipes very easy
         inventory.setItem(GIVE_CURRENT_SLOT, createInfoItem(Material.ENDER_CHEST,
                 "<aqua><bold>Give 1x Item Này</bold>",
                 List.of(
@@ -142,7 +178,9 @@ public class RecipeEditorGui implements InventoryHolder {
                     "<green><bold>Đã có công thức</bold>",
                     List.of(
                             "<gray>Loại: " + (existingRecipe.isShaped() ? "Shaped" : "Shapeless"),
-                            "<gray>Số lượng: " + existingRecipe.getResultAmount()
+                            "<gray>Số lượng: " + existingRecipe.getResultAmount(),
+                            "<gray>Danh mục: " + (categories.isEmpty() ? "<dark_gray>Chưa chọn" : formatCategories(categories)),
+                            requiredSkillNode != null ? "<gray>Skill: <white>" + requiredSkillNode + " cấp " + requiredSkillLevel : ""
                     )));
         }
 
@@ -150,7 +188,47 @@ public class RecipeEditorGui implements InventoryHolder {
         inventory.setItem(backSlot, createInfoItem(Material.ARROW,
                 "<yellow>← Quay Lại",
                 List.of("<gray>Click để quay lại")));
+    }
 
+    private ItemStack createCategoryItem(Material mat, String label, boolean active) {
+        List<String> lore = new ArrayList<>();
+        lore.add(active ? "<green>✓ Đã chọn" : "<gray>Click để chọn");
+        lore.add(active ? "<yellow>Click để bỏ chọn" : "<yellow>Click để thêm");
+        return createInfoItem(
+                active ? Material.LIME_DYE : mat,
+                (active ? "<green><bold>" : "<white>") + label,
+                lore
+        );
+    }
+
+    private static final int SKILL_REQUIREMENT_SLOT = 43;
+
+    private void updateSkillRequirementDisplay() {
+        if (requiredSkillNode != null && !requiredSkillNode.isBlank()) {
+            inventory.setItem(SKILL_REQUIREMENT_SLOT, createInfoItem(Material.EXPERIENCE_BOTTLE,
+                    "<yellow><bold>⚡ Yêu Cầu Cấp Độ</bold>",
+                    List.of(
+                            "<gray>Node: <white>" + requiredSkillNode,
+                            "<gray>Cấp: <white>" + requiredSkillLevel,
+                            "",
+                            "<yellow>Click để sửa | <red>Click Shift để xóa"
+                    )));
+        } else {
+            inventory.setItem(SKILL_REQUIREMENT_SLOT, createInfoItem(Material.GRAY_DYE,
+                    "<gray><bold>⚡ Yêu Cầu Cấp Độ</bold>",
+                    List.of("<gray>Chưa đặt yêu cầu",
+                            "<yellow>Click để thêm yêu cầu về cấp độ (cần USkill)")));
+        }
+    }
+
+    private String formatCategories(Set<String> cats) {
+        return cats.stream()
+                .map(k -> {
+                    UItemRecipe.CategoryInfo info = UItemRecipe.getCategoryInfo(k);
+                    return info != null ? info.getIcon() + " " + info.getDisplayName() : k;
+                })
+                .reduce((a, b) -> a + "<dark_gray>, </dark_gray>" + b)
+                .orElse("");
     }
 
     public void handleClick(InventoryClickEvent event) {
@@ -170,6 +248,31 @@ public class RecipeEditorGui implements InventoryHolder {
             return;
         }
 
+        // Check if it's a category toggle slot
+        for (int i = 0; i < CATEGORY_SLOTS.length; i++) {
+            if (CATEGORY_SLOTS[i] == slot) {
+                event.setCancelled(true);
+                int catIdx = 0;
+                for (String catKey : UItemRecipe.getAllCategories().keySet()) {
+                    if (catIdx == i) {
+                        if (categories.contains(catKey)) {
+                            categories.remove(catKey);
+                            player.sendMessage(TextUtil.info("<red>Đã bỏ</red> danh mục " + UItemRecipe.getCategoryInfo(catKey).getDisplayName()));
+                        } else {
+                            categories.add(catKey);
+                            player.sendMessage(TextUtil.info("<green>Đã thêm</green> danh mục " + UItemRecipe.getCategoryInfo(catKey).getDisplayName()));
+                        }
+                        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
+                        // Re-render just the category buttons and status
+                        updateCategoryDisplay();
+                        return;
+                    }
+                    catIdx++;
+                }
+                return;
+            }
+        }
+
         event.setCancelled(true);
 
         if (slot == SAVE_SHAPED_SLOT) {
@@ -182,13 +285,12 @@ public class RecipeEditorGui implements InventoryHolder {
         }
         if (slot == CLEAR_SLOT) {
             plugin.getRecipeManager().removeRecipe(data.getId());
-            // Save this recipe as its own file (recipes/<result>.yml)
             String resultId = data.getId();
             UItemRecipe current = plugin.getRecipeManager().getRecipe(resultId);
             if (current != null) {
                 plugin.getRecipeManager().saveRecipeIndividual(resultId, current);
             } else {
-                plugin.getRecipeManager().saveRecipesAsync(); // fallback
+                plugin.getRecipeManager().saveRecipesAsync();
             }
             player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.5f, 0.5f);
             player.sendMessage(TextUtil.success("Đã xóa công thức cho '" + data.getId() + "'!"));
@@ -211,7 +313,6 @@ public class RecipeEditorGui implements InventoryHolder {
                         } catch (NumberFormatException e) {
                             player.sendMessage(TextUtil.error("Số không hợp lệ!"));
                         }
-                        // Update display in place to preserve placed ingredients in editor grid
                         updateResultAmountDisplay();
                     });
             return;
@@ -231,6 +332,42 @@ public class RecipeEditorGui implements InventoryHolder {
             player.sendMessage(TextUtil.success("Gave you 1x '" + data.getId() + "'. Drag into the crafting grid to use as ingredient for another item!"));
             return;
         }
+        if (slot == SKILL_REQUIREMENT_SLOT) {
+            event.setCancelled(true);
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
+            if (event.isShiftClick() || requiredSkillNode != null) {
+                requiredSkillNode = null;
+                requiredSkillLevel = 1;
+                updateSkillRequirementDisplay();
+                player.sendMessage(TextUtil.info("Đã xóa yêu cầu cấp độ skill!"));
+                return;
+            }
+            plugin.getChatInputManager().requestInput(player,
+                    "<yellow>Nhập ID của skill node yêu cầu (vd: mining, woodcutting):",
+                    input -> {
+                        String nodeId = input.trim();
+                        if (nodeId.isBlank()) {
+                            player.sendMessage(TextUtil.error("Node ID không được để trống!"));
+                            return;
+                        }
+                        requiredSkillNode = nodeId;
+                        plugin.getChatInputManager().requestInput(player,
+                                "<yellow>Nhập cấp độ yêu cầu (số nguyên >= 1):",
+                                levelInput -> {
+                                    try {
+                                        int level = Integer.parseInt(levelInput.trim());
+                                        if (level < 1) level = 1;
+                                        requiredSkillLevel = level;
+                                        updateSkillRequirementDisplay();
+                                        player.sendMessage(TextUtil.success("Đã đặt yêu cầu: " + requiredSkillNode + " cấp " + requiredSkillLevel));
+                                    } catch (NumberFormatException e) {
+                                        player.sendMessage(TextUtil.error("Số không hợp lệ!"));
+                                    }
+                                });
+                    });
+            return;
+        }
+
         if (slot == 36) {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
             if (backAction != null) {
@@ -242,14 +379,41 @@ public class RecipeEditorGui implements InventoryHolder {
         }
     }
 
+    private void updateCategoryDisplay() {
+        int catIdx = 0;
+        for (Map.Entry<String, UItemRecipe.CategoryInfo> catEntry : UItemRecipe.getAllCategories().entrySet()) {
+            if (catIdx >= CATEGORY_SLOTS.length) break;
+            String catKey = catEntry.getKey();
+            UItemRecipe.CategoryInfo catInfo = catEntry.getValue();
+            boolean active = categories.contains(catKey);
+            Material catMat;
+            try {
+                catMat = Material.valueOf(catInfo.getIconMaterial());
+            } catch (IllegalArgumentException e) {
+                catMat = Material.PAPER;
+            }
+            inventory.setItem(CATEGORY_SLOTS[catIdx], createCategoryItem(catMat,
+                    catInfo.getIcon() + " " + catInfo.getDisplayName(), active));
+            catIdx++;
+        }
+
+        inventory.setItem(44, createInfoItem(
+                existingRecipe != null ? Material.LIME_DYE : Material.GRAY_DYE,
+                existingRecipe != null ? "<green><bold>Đã có công thức</bold>" : "<gray><bold>Chưa có công thức</bold>",
+                List.of(
+                        existingRecipe != null ? "<gray>Loại: " + (existingRecipe.isShaped() ? "Shaped" : "Shapeless") : "",
+                        existingRecipe != null ? "<gray>Số lượng: " + existingRecipe.getResultAmount() : "",
+                        "<gray>Danh mục: " + (categories.isEmpty() ? "<dark_gray>Chưa chọn" : formatCategories(categories)),
+                        requiredSkillNode != null ? "<gray>Skill: <white>" + requiredSkillNode + " cấp " + requiredSkillLevel : ""
+                )));
+    }
+
     private void updateResultAmountDisplay() {
-        // Update preview amount
         ItemStack preview = inventory.getItem(RESULT_SLOT);
         if (preview != null) {
             preview.setAmount(resultAmount);
             inventory.setItem(RESULT_SLOT, preview);
         }
-        // Update the amount button
         inventory.setItem(RESULT_AMOUNT_SLOT, createInfoItem(Material.GOLD_INGOT,
                 "<gold><bold>Result Amount: x" + resultAmount + "</bold>",
                 List.of(
@@ -257,16 +421,16 @@ public class RecipeEditorGui implements InventoryHolder {
                         "<gray>Hiện tại: <white>" + resultAmount,
                         "<yellow>1 - 64 items per craft"
                 )));
-        // Update guide
-        inventory.setItem(RESULT_SLOT + 9, createInfoItem(Material.KNOWLEDGE_BOOK,
+        inventory.setItem(GUIDE_SLOT, createInfoItem(Material.KNOWLEDGE_BOOK,
                 "<gold><bold>Hướng Dẫn</bold>",
                 List.of(
-                        "<gray>Đặt nguyên liệu (vanilla hoặc UItem) bên trái",
+                        "<gray>Đặt nguyên liệu bên trái",
                         "<gray>Kết quả: item này x" + resultAmount,
                         "<yellow>Mẹo: /uitem give <id> rồi kéo vào đây",
-                        "<yellow>Kích thước stack = số lượng nguyên liệu cần",
                         "",
-                        "<green>Shaped</green> <gray>lưu theo mẫu | <aqua>Shapeless</aqua> <gray>bất kỳ thứ tự"
+                        "<green>Shape</green> <gray>lưu mẫu | <aqua>Shapeless</aqua> <gray>bất kỳ",
+                        "<gray>Bấm danh mục bên phải để phân loại",
+                        "<gray>Bấm ⚡ Skill để đặt yêu cầu cấp độ"
                 )));
     }
 
@@ -304,6 +468,9 @@ public class RecipeEditorGui implements InventoryHolder {
         }
 
         UItemRecipe recipe = new UItemRecipe(data.getId(), resultAmount);
+        recipe.setCategories(categories);
+        recipe.setRequiredSkillNode(requiredSkillNode);
+        recipe.setRequiredSkillLevel(requiredSkillLevel);
 
         if (shaped) {
             saveShaped(recipe, matrix);
@@ -376,8 +543,6 @@ public class RecipeEditorGui implements InventoryHolder {
     private char findMatchingChar(ItemStack item, Map<Character, UItemRecipe.Ingredient> map) {
         for (Map.Entry<Character, UItemRecipe.Ingredient> entry : map.entrySet()) {
             UItemRecipe.Ingredient ing = entry.getValue();
-            // Require exact match on type/uitem AND the exact amount (stack size placed = consume amount for that position)
-            // This allows same material with *different* per-position amounts (they get distinct letters)
             boolean typeMatch = false;
             if (ing.getUitemId() != null) {
                 String id = getUItemId(item);
@@ -415,6 +580,12 @@ public class RecipeEditorGui implements InventoryHolder {
         this.existingRecipe = plugin.getRecipeManager().getRecipe(data.getId());
         if (this.existingRecipe != null) {
             this.resultAmount = Math.max(1, Math.min(64, this.existingRecipe.getResultAmount()));
+            this.categories = new HashSet<String>(this.existingRecipe.getCategories());
+            this.requiredSkillNode = this.existingRecipe.getRequiredSkillNode();
+            this.requiredSkillLevel = this.existingRecipe.getRequiredSkillLevel();
+        } else {
+            this.requiredSkillNode = null;
+            this.requiredSkillLevel = 1;
         }
         initialize();
 
@@ -453,9 +624,6 @@ public class RecipeEditorGui implements InventoryHolder {
         player.openInventory(inventory);
     }
 
-    /**
-     * Open as child of an AbstractGui parent so Back returns to it.
-     */
     public void openAsChildOfEditor(AbstractGui parent) {
         if (parent != null) {
             this.backAction = () -> parent.reopen();
@@ -463,10 +631,6 @@ public class RecipeEditorGui implements InventoryHolder {
         open();
     }
 
-    /**
-     * Called when the GUI is closed — returns craft slot items to the player
-     * to prevent permanent item loss.
-     */
     public void onClose(Player player) {
         for (int slot : CRAFT_SLOTS) {
             ItemStack item = inventory.getItem(slot);

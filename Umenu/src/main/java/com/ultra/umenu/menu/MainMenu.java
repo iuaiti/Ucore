@@ -25,10 +25,10 @@ public final class MainMenu extends BaseMenu {
     protected void build(Gui gui, Player player) {
         addConfigItems(gui, configKey, player);
 
-        if (isModuleEnabled(ModuleType.UITEM)) {
+        if (isModuleEnabled(ModuleType.UITEM) && (player.isOp() || player.hasPermission("uitem.editor"))) {
             addConfigItems(gui, "module-uitem", player);
         }
-        if (isModuleEnabled(ModuleType.USKILL)) {
+        if (isModuleEnabled(ModuleType.USKILL) && (player.isOp() || player.hasPermission("uskill.use"))) {
             addConfigItems(gui, "module-uskill", player);
         }
     }

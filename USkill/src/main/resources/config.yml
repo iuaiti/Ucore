@@ -1,0 +1,25 @@
+# ─── Mana System ───
+mana:
+  # Base max mana (StatType.MANA added on top)
+  base-max: 20
+
+  # How many ticks between mana regen ticks (20 ticks = 1 second)
+  regen-interval-ticks: 20
+
+  # HUD settings
+  hud-enabled: true
+  hud-interval-ticks: 10
+  bar-length: 10
+  fill-char: "█"
+  empty-char: "░"
+  color: "<aqua>"
+  empty-color: "<dark_gray>"
+
+  # Format: Java String.format() — %s = bar, then %d/%d (current/max), then (%d%%) percent
+  format: "<dark_aqua>✦ %s <gray>%d/%d <dark_gray>(%d%%)"
+
+  # Full HUD line shown in action bar
+  hud-format: "<gray>━━━━━━━━━━━ <dark_aqua>✦ %s <gray>%d/%d <dark_gray>(%d%%)"
+
+  # Message when not enough mana
+  no-mana-message: "<red>Not enough mana! Need %s MP"

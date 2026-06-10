@@ -258,6 +258,7 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.DIAMOND_SWORD);
         d.setDisplayName("<gradient:#ff6b6b:#ffd93d><bold>" + formatId(newItemId) + "</bold></gradient>");
+        d.addCategory("VU_KHI");
         d.setLore(List.of(
                 "<gray>Một thanh kiếm huyền thoại",
                 "<dark_gray>──────────────",
@@ -278,6 +279,8 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.DIAMOND_AXE);
         d.setDisplayName("<gold><bold>" + formatId(newItemId) + "</bold></gold>");
+        d.addCategory("VU_KHI");
+        d.addCategory("CONG_CU");
         d.setLore(List.of(
                 "<gray>Rìu chiến mạnh mẽ",
                 "<dark_gray>──────────────",
@@ -298,6 +301,7 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.BOW);
         d.setDisplayName("<aqua><bold>" + formatId(newItemId) + "</bold></aqua>");
+        d.addCategory("VU_KHI");
         d.setLore(List.of(
                 "<gray>Cung thần tốc",
                 "<dark_gray>──────────────",
@@ -318,6 +322,7 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.CROSSBOW);
         d.setDisplayName("<light_purple><bold>" + formatId(newItemId) + "</bold></light_purple>");
+        d.addCategory("VU_KHI");
         d.setLore(List.of(
                 "<gray>Nỏ xuyên giáp",
                 "<dark_gray>──────────────",
@@ -338,6 +343,8 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.TRIDENT);
         d.setDisplayName("<blue><bold>" + formatId(newItemId) + "</bold></blue>");
+        d.addCategory("VU_KHI");
+        d.addCategory("VAT_PHAM_DAC_BIET");
         d.setLore(List.of(
                 "<gray>Đinh ba của thần biển",
                 "<dark_gray>──────────────",
@@ -375,6 +382,7 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.MACE);
         d.setDisplayName("<dark_red><bold>" + formatId(newItemId) + "</bold></dark_red>");
+        d.addCategory("VU_KHI");
         d.setLore(List.of(
                 "<gray>Chùy hủy diệt",
                 "<dark_gray>──────────────",
@@ -395,6 +403,7 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.DIAMOND_HELMET);
         d.setDisplayName("<aqua><bold>" + formatId(newItemId) + "</bold></aqua>");
+        d.addCategory("GIAP");
         d.setLore(List.of(
                 "<gray>Mũ giáp huyền thoại",
                 "<dark_gray>──────────────",
@@ -417,6 +426,7 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.DIAMOND_CHESTPLATE);
         d.setDisplayName("<aqua><bold>" + formatId(newItemId) + "</bold></aqua>");
+        d.addCategory("GIAP");
         d.setLore(List.of(
                 "<gray>Áo giáp huyền thoại",
                 "<dark_gray>──────────────",
@@ -438,6 +448,7 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.DIAMOND_LEGGINGS);
         d.setDisplayName("<aqua><bold>" + formatId(newItemId) + "</bold></aqua>");
+        d.addCategory("GIAP");
         d.setLore(List.of(
                 "<gray>Quần giáp huyền thoại",
                 "<dark_gray>──────────────",
@@ -459,6 +470,7 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.DIAMOND_BOOTS);
         d.setDisplayName("<aqua><bold>" + formatId(newItemId) + "</bold></aqua>");
+        d.addCategory("GIAP");
         d.setLore(List.of(
                 "<gray>Giày giáp huyền thoại",
                 "<dark_gray>──────────────",
@@ -481,6 +493,7 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.DIAMOND_PICKAXE);
         d.setDisplayName("<gray><bold>" + formatId(newItemId) + "</bold></gray>");
+        d.addCategory("CONG_CU");
         d.setLore(List.of(
                 "<gray>Cuốc khai thác siêu tốc",
                 "<dark_gray>──────────────",
@@ -501,6 +514,7 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.DIAMOND_SHOVEL);
         d.setDisplayName("<yellow><bold>" + formatId(newItemId) + "</bold></yellow>");
+        d.addCategory("CONG_CU");
         d.setLore(List.of("<gray>Xẻng đào đất siêu tốc"));
         d.getEnchantments().put("efficiency", 5);
         d.getEnchantments().put("fortune", 3);
@@ -515,6 +529,7 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.DIAMOND_HOE);
         d.setDisplayName("<green><bold>" + formatId(newItemId) + "</bold></green>");
+        d.addCategory("CONG_CU");
         d.setLore(List.of("<gray>Cuốc nông nghiệp thần thánh"));
         d.getEnchantments().put("efficiency", 5);
         d.getEnchantments().put("fortune", 3);
@@ -529,6 +544,7 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.GOLDEN_APPLE);
         d.setDisplayName("<gold><bold>" + formatId(newItemId) + "</bold></gold>");
+        d.addCategory("VAT_PHAM_TIEU_HAO");
         d.setLore(List.of(
                 "<gray>Thức ăn thần kỳ",
                 "<dark_gray>──────────────",
@@ -545,6 +561,7 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.TOTEM_OF_UNDYING);
         d.setDisplayName("<light_purple><bold>" + formatId(newItemId) + "</bold></light_purple>");
+        d.addCategory("VAT_PHAM_DAC_BIET");
         d.setLore(List.of(
                 "<gray>Bùa hộ mệnh huyền thoại",
                 "<dark_gray>──────────────",
@@ -561,6 +578,7 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.ENDER_PEARL);
         d.setDisplayName("<dark_purple><bold>" + formatId(newItemId) + "</bold></dark_purple>");
+        d.addCategory("VAT_PHAM_DAC_BIET");
         d.setLore(List.of(
                 "<gray>Bùa dịch chuyển tức thì",
                 "<dark_gray>──────────────",
@@ -593,6 +611,8 @@ public class ItemTemplateGui extends AbstractGui {
         UItemData d = new UItemData(newItemId);
         d.setMaterial(Material.BLAZE_ROD);
         d.setDisplayName("<red><bold>" + formatId(newItemId) + "</bold></red>");
+        d.addCategory("VU_KHI");
+        d.addCategory("VAT_PHAM_DAC_BIET");
         d.setLore(List.of(
                 "<gray>Đũa phép lửa",
                 "<dark_gray>──────────────",

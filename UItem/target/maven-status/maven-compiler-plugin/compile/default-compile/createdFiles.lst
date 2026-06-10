@@ -52,10 +52,12 @@ com/uitem/legacy/skill/gui/SkillEditorGui$1.class
 com/uitem/gui/RarityEditorGui.class
 com/uitem/search/SearchManager.class
 com/uitem/api/events/UItemEquipEvent.class
+com/uitem/util/SkillRequirementHelper.class
 com/uitem/util/PotionEffectRegistry$PotionInfo.class
 com/uitem/api/events/UItemGiveEvent.class
 com/uitem/gui/CraftingGui.class
 com/uitem/gui/ItemTemplateGui.class
+com/uitem/recipe/UItemRecipe$CategoryInfo.class
 com/uitem/gui/PotionPresetComboGui.class
 com/uitem/legacy/skill/gui/SkillListGui.class
 com/uitem/UItemManager.class

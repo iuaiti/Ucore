@@ -87,6 +87,12 @@ public abstract class BaseMenu {
             String action = config.getString(path + ".action", "NONE");
             String target = config.getString(path + ".target", "");
 
+            // Permission check: nếu item yêu cầu permission, skip nếu player không có
+            String perm = config.getString(path + ".permission", null);
+            if (perm != null && !perm.isEmpty() && !player.isOp() && !player.hasPermission(perm)) {
+                continue;
+            }
+
             ItemStack itemStack = itemLoader.build(itemRef, player);
             Consumer<org.bukkit.event.inventory.InventoryClickEvent> clickHandler = switch (action.toUpperCase()) {
                 case "OPEN_MENU" -> event -> menuManager.open((Player) event.getWhoClicked(), target);

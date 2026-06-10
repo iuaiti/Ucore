@@ -13,6 +13,48 @@ import java.util.*;
 
 public class UItemRecipe {
 
+    // ═════════════════════════════════════════════════════════════════════════
+    //  Recipe Categories (phân loại công thức theo chức năng)
+    // ═════════════════════════════════════════════════════════════════════════
+
+    private static final LinkedHashMap<String, CategoryInfo> CATEGORIES = new LinkedHashMap<>();
+    static {
+        CATEGORIES.put("VU_KHI",       new CategoryInfo("Vũ Khí",       "🗡", "WEAPON"));
+        CATEGORIES.put("GIAP",         new CategoryInfo("Giáp",         "🛡", "CHAINMAIL_CHESTPLATE"));
+        CATEGORIES.put("CONG_CU",      new CategoryInfo("Công Cụ",      "⛏", "DIAMOND_PICKAXE"));
+        CATEGORIES.put("NGUYEN_LIEU",  new CategoryInfo("Nguyên Liệu",  "🧱", "IRON_INGOT"));
+        CATEGORIES.put("VAT_PHAM_TIEU_HAO", new CategoryInfo("Tiêu Hao","🔥", "TIPPED_ARROW"));
+        CATEGORIES.put("VAT_PHAM_DAC_BIET", new CategoryInfo("Đặc Biệt", "⭐", "NETHER_STAR"));
+        CATEGORIES.put("KHOI_XAY_DUNG",     new CategoryInfo("Khối Xây Dựng", "🧱", "STONE"));
+        CATEGORIES.put("MAY_MOC_TIEN_ICH",  new CategoryInfo("Máy Móc / Tiện Ích", "⚙", "PISTON"));
+    }
+
+    public static Map<String, CategoryInfo> getAllCategories() {
+        return Collections.unmodifiableMap(CATEGORIES);
+    }
+
+    public static CategoryInfo getCategoryInfo(String key) {
+        return CATEGORIES.get(key);
+    }
+
+    public static class CategoryInfo {
+        private final String displayName;
+        private final String icon;
+        private final String iconMaterial;
+
+        public CategoryInfo(String displayName, String icon, String iconMaterial) {
+            this.displayName = displayName;
+            this.icon = icon;
+            this.iconMaterial = iconMaterial;
+        }
+
+        public String getDisplayName() { return displayName; }
+        public String getIcon() { return icon; }
+        public String getIconMaterial() { return iconMaterial; }
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+
     // Cached NamespacedKey for PDC tag matching — avoids creating a new one each match()
     private static NamespacedKey CACHED_UITEM_KEY;
 
@@ -35,6 +77,9 @@ public class UItemRecipe {
     private List<String> shape;
     private Map<Character, Ingredient> ingredientMap;
     private List<Ingredient> ingredients;
+    private Set<String> categories = new HashSet<>();
+    private String requiredSkillNode; // null = no requirement
+    private int requiredSkillLevel = 1;
 
     public UItemRecipe(String resultItemId, int resultAmount) {
         this.resultItemId = resultItemId;
@@ -60,6 +105,24 @@ public class UItemRecipe {
 
     public List<Ingredient> getIngredients() { return ingredients; }
     public void setIngredients(List<Ingredient> ingredients) { this.ingredients = ingredients; }
+
+    public Set<String> getCategories() { return categories; }
+    public void setCategories(Set<String> categories) { this.categories = categories != null ? new HashSet<>(categories) : new HashSet<>(); }
+    public void addCategory(String category) { if (CATEGORIES.containsKey(category)) categories.add(category); }
+    public void removeCategory(String category) { categories.remove(category); }
+    public boolean hasCategory(String category) { return categories.contains(category); }
+    public void toggleCategory(String category) {
+        if (CATEGORIES.containsKey(category)) {
+            if (categories.contains(category)) categories.remove(category);
+            else categories.add(category);
+        }
+    }
+
+    public String getRequiredSkillNode() { return requiredSkillNode; }
+    public void setRequiredSkillNode(String node) { this.requiredSkillNode = (node != null && !node.isBlank()) ? node : null; }
+    public int getRequiredSkillLevel() { return requiredSkillLevel; }
+    public void setRequiredSkillLevel(int level) { this.requiredSkillLevel = Math.max(1, level); }
+    public boolean hasSkillRequirement() { return requiredSkillNode != null; }
 
     public static class Ingredient {
         private Material material;
@@ -243,6 +306,13 @@ public class UItemRecipe {
         section.set("result-item", resultItemId);
         section.set("result-amount", resultAmount);
         section.set("shaped", shaped);
+        if (!categories.isEmpty()) {
+            section.set("categories", new ArrayList<>(categories));
+        }
+        if (requiredSkillNode != null) {
+            section.set("required-skill-node", requiredSkillNode);
+            section.set("required-skill-level", requiredSkillLevel);
+        }
         if (shaped) {
             section.set("shape", shape);
             ConfigurationSection ingMapSection = section.createSection("ingredient-map");
@@ -267,6 +337,17 @@ public class UItemRecipe {
             int amount = section.getInt("result-amount", 1);
             UItemRecipe recipe = new UItemRecipe(resultId, amount);
             recipe.setShaped(section.getBoolean("shaped", false));
+
+            List<String> cats = section.getStringList("categories");
+            if (cats != null && !cats.isEmpty()) {
+                recipe.setCategories(new HashSet<>(cats));
+            }
+
+            String skillNode = section.getString("required-skill-node");
+            if (skillNode != null && !skillNode.isBlank()) {
+                recipe.setRequiredSkillNode(skillNode);
+                recipe.setRequiredSkillLevel(section.getInt("required-skill-level", 1));
+            }
 
             if (recipe.isShaped()) {
                 List<String> shape = section.getStringList("shape");
@@ -313,6 +394,9 @@ public class UItemRecipe {
         copy.shape = new ArrayList<>(shape);
         copy.ingredientMap = new HashMap<>(ingredientMap);
         copy.ingredients = new ArrayList<>(ingredients);
+        copy.categories = new HashSet<>(categories);
+        copy.requiredSkillNode = requiredSkillNode;
+        copy.requiredSkillLevel = requiredSkillLevel;
         return copy;
     }
 }

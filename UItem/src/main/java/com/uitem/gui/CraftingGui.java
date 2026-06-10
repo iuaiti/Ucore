@@ -5,6 +5,7 @@ import com.uitem.UItemPlugin;
 import com.uitem.recipe.RecipeManager;
 import com.uitem.recipe.UItemRecipe;
 import com.uitem.util.SchedulerUtil;
+import com.uitem.util.SkillRequirementHelper;
 import com.uitem.util.TextUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -157,6 +158,24 @@ public class CraftingGui implements InventoryHolder {
         ItemStack baseResult = recipeManager.matchRecipe(matrix);
         if (baseResult != null) {
             UItemRecipe rec = findMatchingRecipe(matrix);
+
+            // Skill requirement check
+            if (rec != null && !SkillRequirementHelper.canCraft(player, rec)) {
+                ItemStack locked = new ItemStack(Material.GRAY_STAINED_GLASS);
+                ItemMeta lm = locked.getItemMeta();
+                if (lm != null) {
+                    lm.displayName(TextUtil.parse("<red><bold>🔒 Chưa đủ cấp độ</bold>"));
+                    String reqText = SkillRequirementHelper.getRequirementText(rec);
+                    lm.lore(List.of(
+                            TextUtil.parse("<gray>Cần mở khóa node skill để chế tạo item này."),
+                            reqText != null ? TextUtil.parse(reqText) : net.kyori.adventure.text.Component.empty()
+                    ));
+                    locked.setItemMeta(lm);
+                }
+                inventory.setItem(RESULT_SLOT, locked);
+                return;
+            }
+
             int per = (rec != null ? rec.getResultAmount() : 1);
             int maxU = maxCraftable(matrix);
             int units = (craftUnits == 999 ? maxU : Math.min(craftUnits, maxU));
@@ -171,6 +190,9 @@ public class CraftingGui implements InventoryHolder {
             if (pm != null) {
                 List<net.kyori.adventure.text.Component> lore = pm.lore() != null ? new ArrayList<>(pm.lore()) : new ArrayList<>();
                 lore.add(net.kyori.adventure.text.Component.empty());
+                if (rec != null && !rec.getCategories().isEmpty()) {
+                    lore.add(TextUtil.parse("<gray>Danh mục: " + formatCraftCategories(rec.getCategories())));
+                }
                 lore.add(TextUtil.parse("<yellow>Click để chế x" + showAmt));
                 lore.add(TextUtil.parse("<gray>Max units craftable: " + maxU));
                 pm.lore(lore);
@@ -251,6 +273,13 @@ public class CraftingGui implements InventoryHolder {
     private void takeResult() {
         ItemStack result = inventory.getItem(RESULT_SLOT);
         if (result == null || result.getType().isAir()) return;
+
+        // Defense: if it's the gray "locked" glass, deny crafting
+        if (result.getType() == Material.GRAY_STAINED_GLASS) {
+            inventory.setItem(RESULT_SLOT, null);
+            player.sendMessage(TextUtil.error("Bạn chưa đủ cấp độ skill để chế tạo item này!"));
+            return;
+        }
 
         // Clear immediately to prevent double-click / race condition giving duplicate items
         inventory.setItem(RESULT_SLOT, null);
@@ -481,6 +510,16 @@ public class CraftingGui implements InventoryHolder {
         }
         // Clear result slot WITHOUT returning it to prevent item duplication
         inventory.setItem(RESULT_SLOT, null);
+    }
+
+    private String formatCraftCategories(java.util.Set<String> cats) {
+        return cats.stream()
+                .map(k -> {
+                    UItemRecipe.CategoryInfo info = UItemRecipe.getCategoryInfo(k);
+                    return info != null ? info.getIcon() + " " + info.getDisplayName() : k;
+                })
+                .reduce((a, b) -> a + "<dark_gray>, </dark_gray>" + b)
+                .orElse("");
     }
 
     public void open() {

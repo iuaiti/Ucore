@@ -15,7 +15,26 @@ public class SkillCondition {
         IN_WORLD("In specific world"),
         HAS_OFFHAND("Has offhand item"),
         HAS_PERMISSION("Has permission (alias)"),
-        ALWAYS("Always true");
+        ALWAYS("Always true"),
+        HAS_POTION("Has potion effect"),
+        LEVEL_MIN("Minimum player level"),
+        EXPERIENCE_MIN("Minimum total exp"),
+        IS_IN_WATER("In water"),
+        IS_IN_LAVA("In lava"),
+        IS_ON_GROUND("On ground"),
+        IS_RAINING("Raining in world"),
+        IS_NIGHT("Night time"),
+        IS_DAY("Day time"),
+        BIOME("In specific biome"),
+        IS_SPRINTING("Is sprinting"),
+        IS_WEARING("Is wearing material"),
+        HAS_MONEY("Has enough money"),
+        IS_ON_FIRE("Is on fire"),
+        HEALTH_PERCENT_MIN("Min health percent"),
+        TARGET_IN_RANGE("Target in range"),
+        HAS_ITEM("Has item in inventory"),
+        IS_MOUNTED("Is riding entity"),
+        LIGHT_LEVEL("Light level check");
 
         private final String display;
         ConditionType(String d) { this.display = d; }

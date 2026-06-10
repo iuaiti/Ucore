@@ -16,11 +16,13 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class SkillExecutor {
 
     private final CooldownManager cooldowns;
+    private final Map<UUID, Location> recallLocations = new ConcurrentHashMap<>();
 
     private static final java.util.Set<Material> BLOCK_BREAK_PROTECTED = java.util.Set.of(
             Material.BEDROCK,
@@ -54,6 +56,10 @@ public final class SkillExecutor {
 
     public CooldownManager getCooldowns() {
         return cooldowns;
+    }
+
+    public void clearPlayer(Player player) {
+        recallLocations.remove(player.getUniqueId());
     }
 
     public boolean executeSkill(Player player, Skill skill, LivingEntity target) {
@@ -123,6 +129,89 @@ public final class SkillExecutor {
                 case HAS_OFFHAND -> {
                     ItemStack off = player.getInventory().getItemInOffHand();
                     yield off != null && !off.getType().isAir();
+                }
+                case HAS_POTION -> {
+                    String effectName = cond.getString("effect", "");
+                    if (effectName.isEmpty()) yield false;
+                    PotionEffectType pet = Registry.EFFECT.get(NamespacedKey.minecraft(effectName.toLowerCase(Locale.ROOT)));
+                    yield pet != null && player.hasPotionEffect(pet);
+                }
+                case LEVEL_MIN -> player.getLevel() >= cond.getInt("value", 0);
+                case EXPERIENCE_MIN -> player.getTotalExperience() >= cond.getInt("value", 0);
+                case IS_IN_WATER -> player.isInWater();
+                case IS_IN_LAVA -> player.isInLava();
+                case IS_ON_GROUND -> player.isOnGround();
+                case IS_RAINING -> player.getWorld().hasStorm();
+                case IS_NIGHT -> {
+                    long time = player.getWorld().getTime();
+                    yield time >= 13000 && time < 23000;
+                }
+                case IS_DAY -> {
+                    long time = player.getWorld().getTime();
+                    yield time >= 0 && time < 13000;
+                }
+                case BIOME -> {
+                    String biomeName = cond.getString("biome", "");
+                    yield biomeName.isEmpty() || player.getLocation().getBlock().getBiome().getKey().getKey().equalsIgnoreCase(biomeName);
+                }
+                case IS_SPRINTING -> player.isSprinting();
+                case IS_WEARING -> {
+                    String matName = cond.getString("material", "");
+                    if (matName.isEmpty()) yield false;
+                    try {
+                        Material mat = Material.valueOf(matName.toUpperCase(Locale.ROOT));
+                        for (ItemStack armor : player.getInventory().getArmorContents()) {
+                            if (armor != null && armor.getType() == mat) yield true;
+                        }
+                    } catch (Exception ignored) {}
+                    yield false;
+                }
+                case HAS_MONEY -> {
+                    double needed = cond.getDouble("value", 0);
+                    if (needed <= 0) yield true;
+                    try {
+                        Class<?> ecoClass = Class.forName("net.milkbowl.vault.economy.Economy");
+                        Object eco = Bukkit.getServicesManager().load(ecoClass);
+                        if (eco != null) {
+                            double bal = (double) ecoClass.getMethod("getBalance", org.bukkit.OfflinePlayer.class).invoke(eco, player);
+                            yield bal >= needed;
+                        }
+                    } catch (Exception ignored) {}
+                    yield true;
+                }
+                case IS_ON_FIRE -> player.getFireTicks() > 0;
+                case HEALTH_PERCENT_MIN -> {
+                    var maxAttr = player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
+                    double maxHp = maxAttr != null ? maxAttr.getValue() : 20.0;
+                    double pctNeeded = cond.getDouble("value", 50);
+                    yield (player.getHealth() / maxHp) * 100.0 >= pctNeeded;
+                }
+                case TARGET_IN_RANGE -> {
+                    if (target == null || !target.isValid()) yield false;
+                    double range = cond.getDouble("value", 10);
+                    yield player.getLocation().distanceSquared(target.getLocation()) <= range * range;
+                }
+                case HAS_ITEM -> {
+                    String matName = cond.getString("material", "");
+                    int amt = cond.getInt("amount", 1);
+                    if (matName.isEmpty()) yield false;
+                    try {
+                        Material mat = Material.valueOf(matName.toUpperCase(Locale.ROOT));
+                        yield player.getInventory().contains(mat, amt);
+                    } catch (Exception e) { yield false; }
+                }
+                case IS_MOUNTED -> player.isInsideVehicle();
+                case LIGHT_LEVEL -> {
+                    int light = player.getLocation().getBlock().getLightLevel();
+                    String op = cond.getString("operator", ">=");
+                    int val = cond.getInt("value", 0);
+                    yield switch (op) {
+                        case ">" -> light > val;
+                        case "<" -> light < val;
+                        case "<=" -> light <= val;
+                        case "==", "=" -> light == val;
+                        default -> light >= val;
+                    };
                 }
                 default -> true;
             };
@@ -547,6 +636,438 @@ public final class SkillExecutor {
                 LivingEntity freezeTarget = (target != null && target.isValid()) ? target : player;
                 freezeTarget.setFreezeTicks(dur * 20);
                 return true;
+            }
+
+            case BEAM -> {
+                double dmg = action.getDoubleParam("damage", 5.0);
+                double range = action.getDoubleParam("range", 20.0);
+                double radius = action.getDoubleParam("radius", 1.5);
+                var ray = world.rayTraceEntities(player.getEyeLocation(), player.getEyeLocation().getDirection(), range, radius, e -> e instanceof LivingEntity && !e.equals(player));
+                if (ray != null && ray.getHitEntity() instanceof LivingEntity hit) {
+                    hit.damage(dmg, player);
+                    hit.getWorld().spawnParticle(Particle.FLAME, hit.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, 0.02);
+                    player.getWorld().playSound(hit.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_TWINKLE, 0.5f, 1.2f);
+                }
+                return true;
+            }
+
+            case CIRCLE -> {
+                double dmg = action.getDoubleParam("damage", 5.0);
+                double radius = action.getDoubleParam("radius", 4.0);
+                int count = 0;
+                for (Entity e : world.getNearbyEntities(loc, radius, radius, radius)) {
+                    if (e instanceof LivingEntity le && !le.equals(player)) {
+                        le.damage(dmg, player);
+                        count++;
+                    }
+                }
+                world.spawnParticle(Particle.SWEEP_ATTACK, loc.clone().add(0, 0.5, 0), 30, radius, 0.3, radius, 0);
+                world.playSound(loc, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 0.8f, 0.8f);
+                if (count > 0) return true;
+                return false;
+            }
+
+            case CONE -> {
+                double dmg = action.getDoubleParam("damage", 5.0);
+                double range = action.getDoubleParam("range", 6.0);
+                double angle = action.getDoubleParam("angle", 45.0);
+                Vector dir = player.getLocation().getDirection().normalize();
+                double angleRad = Math.toRadians(angle);
+                boolean hit = false;
+                for (Entity e : world.getNearbyEntities(loc, range, range, range)) {
+                    if (!(e instanceof LivingEntity le) || le.equals(player)) continue;
+                    Vector toTarget = e.getLocation().toVector().subtract(loc.toVector());
+                    double dist = toTarget.length();
+                    if (dist > range || dist < 0.5) continue;
+                    double dot = dir.dot(toTarget.normalize());
+                    double entityAngle = Math.acos(Math.max(-1, Math.min(1, dot)));
+                    if (entityAngle <= angleRad) {
+                        le.damage(dmg * (1 - dist / range * 0.5), player);
+                        hit = true;
+                    }
+                }
+                if (hit) {
+                    world.spawnParticle(Particle.CRIT, loc.clone().add(dir.clone().multiply(2)), 40, 0.5, 0.5, 0.5, 0.1);
+                    world.playSound(loc, Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.8f, 0.6f);
+                }
+                return hit;
+            }
+
+            case PULL -> {
+                if (target == null || !target.isValid()) return false;
+                double power = action.getDoubleParam("power", 1.5);
+                Vector pullVec = player.getLocation().toVector().subtract(target.getLocation().toVector()).normalize().multiply(power);
+                pullVec.setY(Math.min(pullVec.getY() + 0.3, 1.0));
+                target.setVelocity(pullVec);
+                world.playSound(target.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 0.5f, 0.5f);
+                return true;
+            }
+
+            case PUSH -> {
+                if (target == null || !target.isValid()) return false;
+                double power = action.getDoubleParam("power", 1.5);
+                Vector pushVec = target.getLocation().toVector().subtract(player.getLocation().toVector()).normalize().multiply(power);
+                pushVec.setY(Math.min(pushVec.getY() + 0.3, 1.0));
+                target.setVelocity(pushVec);
+                world.playSound(target.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 0.8f, 1.5f);
+                return true;
+            }
+
+            case THROW_ENTITY -> {
+                if (target == null || !target.isValid()) return false;
+                double power = action.getDoubleParam("power", 2.0);
+                Vector throwVec = player.getLocation().getDirection().normalize().multiply(power);
+                throwVec.setY(Math.max(throwVec.getY(), 0.5));
+                target.setVelocity(throwVec);
+                target.setFallDistance(-100);
+                world.playSound(target.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.6f, 0.8f);
+                return true;
+            }
+
+            case ROCKET -> {
+                double power = action.getDoubleParam("power", 1.5);
+                player.setVelocity(player.getVelocity().setY(power));
+                player.setFallDistance(-100);
+                world.spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, loc, 30, 0.3, 0, 0.3, 0.05);
+                world.spawnParticle(Particle.FLAME, loc, 20, 0.3, 0, 0.3, 0.02);
+                world.playSound(loc, Sound.ENTITY_FIREWORK_ROCKET_LAUNCH, 0.7f, 0.9f);
+                return true;
+            }
+
+            case LIGHTNING_STORM -> {
+                int count = Math.min(action.getIntParam("count", 5), 20);
+                double radius = action.getDoubleParam("radius", 8.0);
+                Location center = (target != null && target.isValid()) ? target.getLocation() : loc;
+                for (int i = 0; i < count; i++) {
+                    double xOff = ThreadLocalRandom.current().nextDouble(-radius, radius);
+                    double zOff = ThreadLocalRandom.current().nextDouble(-radius, radius);
+                    Location strikeLoc = center.clone().add(xOff, 0, zOff);
+                    strikeLoc.setY(world.getHighestBlockYAt(strikeLoc));
+                    world.strikeLightningEffect(strikeLoc);
+                    for (Entity e : world.getNearbyEntities(strikeLoc, 3, 3, 3)) {
+                        if (e instanceof LivingEntity le && !le.equals(player)) {
+                            le.damage(4.0, player);
+                        }
+                    }
+                }
+                world.playSound(center, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.8f, 0.6f);
+                return true;
+            }
+
+            case BOMB -> {
+                double dmg = action.getDoubleParam("damage", 6.0);
+                float power = (float) action.getDoubleParam("power", 2.0);
+                boolean fire = action.getBooleanParam("fire", false);
+                var fb = world.spawn(loc.clone().add(0, 1.2, 0), org.bukkit.entity.Fireball.class);
+                fb.setShooter(player);
+                fb.setYield(power);
+                fb.setIsIncendiary(fire);
+                fb.setVelocity(player.getLocation().getDirection().multiply(1.8));
+                fb.setCustomName("bomb");
+                Bukkit.getScheduler().runTaskLater(com.ultra.uskill.USkillPlugin.getInstance(), () -> {
+                    if (fb.isValid() && !fb.isDead()) {
+                        fb.getWorld().createExplosion(fb.getLocation(), power, fire, true);
+                        fb.remove();
+                    }
+                }, 60L);
+                return true;
+            }
+
+            case WARP -> {
+                double distance = action.getDoubleParam("distance", 8.0);
+                Vector dir = player.getLocation().getDirection().normalize();
+                Location targetLoc = loc.clone().add(dir.clone().multiply(distance));
+                targetLoc.setYaw(loc.getYaw());
+                targetLoc.setPitch(loc.getPitch());
+                Block targetBlock = targetLoc.getBlock();
+                if (targetBlock.getType().isSolid()) {
+                    targetLoc.setY(targetLoc.getY() + 2);
+                }
+                if (!targetLoc.getBlock().getType().isSolid() && targetLoc.clone().add(0, 1, 0).getBlock().getType().isAir()) {
+                    player.teleport(targetLoc);
+                    world.spawnParticle(Particle.REVERSE_PORTAL, targetLoc, 30, 0.5, 0.5, 0.5, 0.1);
+                    world.playSound(targetLoc, Sound.ENTITY_ENDERMAN_TELEPORT, 0.7f, 1.2f);
+                } else {
+                    player.sendMessage(com.ultra.ucore.util.TextUtil.parse("<red>No space to warp!"));
+                    return false;
+                }
+                return true;
+            }
+
+            case GROUND_SLAM -> {
+                double dmg = action.getDoubleParam("damage", 6.0);
+                double radius = action.getDoubleParam("radius", 4.0);
+                world.spawnParticle(Particle.EXPLOSION, loc.clone().add(0, 0.5, 0), 1, 0, 0, 0, 0);
+                world.spawnParticle(Particle.CLOUD, loc.clone().add(0, 0.2, 0), 40, radius / 2, 0.2, radius / 2, 0.05);
+                world.playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 0.8f, 0.7f);
+                boolean hit = false;
+                for (Entity e : world.getNearbyEntities(loc, radius, 2, radius)) {
+                    if (!(e instanceof LivingEntity le) || le.equals(player)) continue;
+                    le.damage(dmg, player);
+                    Vector kb = le.getLocation().toVector().subtract(loc.toVector()).normalize();
+                    kb.setY(0.4);
+                    le.setVelocity(kb);
+                    hit = true;
+                }
+                return hit;
+            }
+
+            case FIRE_TRAIL -> {
+                int duration = Math.min(action.getIntParam("duration", 5), 20);
+                int interval = Math.max(action.getIntParam("interval", 2), 1);
+                Block startBlock = loc.getBlock();
+                if (startBlock.getType().isAir() || startBlock.getType() == Material.SHORT_GRASS) {
+                    startBlock.setType(Material.FIRE);
+                    Bukkit.getScheduler().runTaskLater(com.ultra.uskill.USkillPlugin.getInstance(), () -> {
+                        if (startBlock.getType() == Material.FIRE) startBlock.setType(Material.AIR);
+                    }, duration * 20L);
+                }
+                return true;
+            }
+
+            case ICE_TRAIL -> {
+                int duration = Math.min(action.getIntParam("duration", 5), 20);
+                Block startBlock = loc.getBlock();
+                if (startBlock.getType().isAir() || startBlock.isLiquid() || startBlock.getType() == Material.SHORT_GRASS) {
+                    startBlock.setType(Material.FROSTED_ICE);
+                    Bukkit.getScheduler().runTaskLater(com.ultra.uskill.USkillPlugin.getInstance(), () -> {
+                        if (startBlock.getType() == Material.FROSTED_ICE) startBlock.setType(Material.AIR);
+                    }, duration * 20L);
+                }
+                return true;
+            }
+
+            case BLINK -> {
+                double distance = action.getDoubleParam("distance", 5.0);
+                Vector dir = player.getLocation().getDirection().normalize();
+                Location blinkLoc = loc.clone().add(dir.clone().multiply(distance));
+                blinkLoc.setYaw(loc.getYaw());
+                blinkLoc.setPitch(loc.getPitch());
+                if (!blinkLoc.getBlock().getType().isSolid() && !blinkLoc.clone().add(0, 1, 0).getBlock().getType().isSolid()) {
+                    player.teleport(blinkLoc);
+                    world.spawnParticle(Particle.PORTAL, loc, 30, 0.5, 0.5, 0.5, 0.1);
+                    world.spawnParticle(Particle.PORTAL, blinkLoc, 30, 0.5, 0.5, 0.5, 0.1);
+                    world.playSound(blinkLoc, Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 1.5f);
+                } else {
+                    return false;
+                }
+                return true;
+            }
+
+            case SHIELD -> {
+                double absorption = action.getDoubleParam("absorption", 8.0);
+                int duration = Math.min(action.getIntParam("duration", 10), 60);
+                var maxAttr = player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
+                double maxHp = maxAttr != null ? maxAttr.getValue() : 20.0;
+                player.setAbsorptionAmount(Math.min(absorption, maxHp));
+                PotionEffectType resist = Registry.EFFECT.get(NamespacedKey.minecraft("resistance"));
+                if (resist != null) {
+                    player.addPotionEffect(new PotionEffect(resist, duration * 20, 0, false, false, true));
+                }
+                world.spawnParticle(Particle.CURRENT_DOWN, loc.clone().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.1);
+                world.playSound(loc, Sound.ITEM_SHIELD_BLOCK, 0.8f, 1.2f);
+                return true;
+            }
+
+            case RECALL -> {
+                Location prev = recallLocations.get(player.getUniqueId());
+                if (prev != null) {
+                    player.teleport(prev);
+                    world.spawnParticle(Particle.REVERSE_PORTAL, player.getLocation(), 30, 0.5, 0.5, 0.5, 0.1);
+                    world.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.7f, 0.8f);
+                    recallLocations.remove(player.getUniqueId());
+                    return true;
+                } else {
+                    recallLocations.put(player.getUniqueId(), player.getLocation());
+                    player.sendMessage(com.ultra.ucore.util.TextUtil.parse("<green>Recall point set!"));
+                    world.spawnParticle(Particle.WAX_ON, loc.clone().add(0, 1, 0), 15, 0.3, 0.5, 0.3, 0);
+                    world.playSound(loc, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 0.7f, 1.2f);
+                    return true;
+                }
+            }
+
+            case SMITE -> {
+                double dmg = action.getDoubleParam("damage", 6.0);
+                double radius = action.getDoubleParam("radius", 8.0);
+                boolean hit = false;
+                for (Entity e : world.getNearbyEntities(loc, radius, radius, radius)) {
+                    if (!(e instanceof LivingEntity le) || le.equals(player)) continue;
+                    world.strikeLightningEffect(le.getLocation());
+                    le.damage(dmg, player);
+                    hit = true;
+                }
+                if (hit) {
+                    world.playSound(loc, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.8f, 1.0f);
+                }
+                return hit;
+            }
+
+            case FIRE_NOVA -> {
+                double dmg = action.getDoubleParam("damage", 5.0);
+                double radius = action.getDoubleParam("radius", 5.0);
+                for (Entity e : world.getNearbyEntities(loc, radius, radius, radius)) {
+                    if (!(e instanceof LivingEntity le) || le.equals(player)) continue;
+                    le.damage(dmg, player);
+                    le.setFireTicks(80);
+                }
+                world.spawnParticle(Particle.FLAME, loc.clone().add(0, 0.5, 0), 60, radius, 0.5, radius, 0.05);
+                world.spawnParticle(Particle.LAVA, loc.clone().add(0, 0.5, 0), 20, radius / 2, 0.3, radius / 2, 0.01);
+                world.playSound(loc, Sound.ENTITY_BLAZE_SHOOT, 1.0f, 0.6f);
+                return true;
+            }
+
+            case ICE_PRISON -> {
+                if (target == null || !target.isValid()) return false;
+                int duration = Math.min(action.getIntParam("duration", 5), 15);
+                Location tl = target.getLocation();
+                Block centerBlock = tl.getBlock();
+                Material originalType = centerBlock.getType();
+                if (!centerBlock.getType().isAir() && centerBlock.getType() != Material.SHORT_GRASS && centerBlock.getType() != Material.SNOW) {
+                    return false;
+                }
+                centerBlock.setType(Material.PACKED_ICE);
+                if (!tl.clone().add(0, 1, 0).getBlock().getType().isAir()) {
+                    centerBlock.setType(originalType);
+                    return false;
+                }
+                tl.clone().add(0, 1, 0).getBlock().setType(Material.PACKED_ICE);
+                target.teleport(tl.clone().add(0.5, 0, 0.5));
+                target.setFreezeTicks(duration * 20);
+                world.spawnParticle(Particle.SNOWFLAKE, tl.clone().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0);
+                world.playSound(tl, Sound.BLOCK_GLASS_PLACE, 0.8f, 0.5f);
+                Bukkit.getScheduler().runTaskLater(com.ultra.uskill.USkillPlugin.getInstance(), () -> {
+                    Block b1 = tl.getBlock();
+                    Block b2 = tl.clone().add(0, 1, 0).getBlock();
+                    if (b1.getType() == Material.PACKED_ICE) b1.setType(Material.AIR);
+                    if (b2.getType() == Material.PACKED_ICE) b2.setType(Material.AIR);
+                }, duration * 20L);
+                return true;
+            }
+
+            case ROOT -> {
+                int dur = Math.min(action.getIntParam("duration", 3), 10);
+                LivingEntity rootTarget = (target != null && target.isValid()) ? target : player;
+                PotionEffectType slowness = Registry.EFFECT.get(NamespacedKey.minecraft("slowness"));
+                if (slowness != null) {
+                    rootTarget.addPotionEffect(new PotionEffect(slowness, dur * 20, 10, false, true, true));
+                }
+                rootTarget.setFreezeTicks(dur * 20);
+                world.spawnParticle(Particle.SCULK_SOUL, rootTarget.getLocation().clone().add(0, 1, 0), 5, 0.3, 0.5, 0.3, 0);
+                world.playSound(rootTarget.getLocation(), Sound.BLOCK_CHAIN_PLACE, 0.7f, 0.4f);
+                return true;
+            }
+
+            case DISARM -> {
+                if (target == null || !(target instanceof Player targetPlayer)) return false;
+                ItemStack mainHand = targetPlayer.getInventory().getItemInMainHand().clone();
+                if (mainHand.getType().isAir()) return false;
+                targetPlayer.getInventory().setItemInMainHand(null);
+                targetPlayer.getWorld().dropItemNaturally(targetPlayer.getLocation(), mainHand);
+                targetPlayer.sendMessage(com.ultra.ucore.util.TextUtil.parse("<red>You have been disarmed!"));
+                world.playSound(targetPlayer.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.7f, 0.8f);
+                return true;
+            }
+
+            case POISON_CLOUD -> {
+                double dmg = action.getDoubleParam("damage", 2.0);
+                double radius = action.getDoubleParam("radius", 4.0);
+                int duration = Math.min(action.getIntParam("duration", 5), 15);
+                Location cloudLoc = (target != null && target.isValid()) ? target.getLocation() : loc;
+                var areaCloud = (org.bukkit.entity.AreaEffectCloud) world.spawnEntity(cloudLoc, EntityType.AREA_EFFECT_CLOUD);
+                areaCloud.setRadius((float) radius);
+                areaCloud.setDuration(duration * 20);
+                areaCloud.setWaitTime(0);
+                areaCloud.setReapplicationDelay(10);
+                areaCloud.setCustomName(null);
+                PotionEffectType poison = Registry.EFFECT.get(NamespacedKey.minecraft("poison"));
+                if (poison != null) {
+                    areaCloud.addCustomEffect(new PotionEffect(poison, 40, 0, false, true, true), true);
+                }
+                areaCloud.setParticle(Particle.SPORE_BLOSSOM_AIR);
+                world.playSound(cloudLoc, Sound.ENTITY_SPIDER_AMBIENT, 0.5f, 0.5f);
+                return true;
+            }
+
+            case HEALING_CIRCLE -> {
+                double healAmt = action.getDoubleParam("heal", 4.0);
+                double radius = action.getDoubleParam("radius", 4.0);
+                world.spawnParticle(Particle.HAPPY_VILLAGER, loc.clone().add(0, 0.5, 0), 40, radius, 0.3, radius, 0);
+                world.spawnParticle(Particle.HEART, loc.clone().add(0, 1.5, 0), 15, radius / 2, 0.3, radius / 2, 0);
+                world.playSound(loc, Sound.BLOCK_BEACON_ACTIVATE, 0.6f, 1.2f);
+                boolean healed = false;
+                for (Entity e : world.getNearbyEntities(loc, radius, radius, radius)) {
+                    if (e instanceof Player p) {
+                        var maxAttr = p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
+                        double maxHp = maxAttr != null ? maxAttr.getValue() : 20.0;
+                        p.setHealth(Math.min(maxHp, p.getHealth() + healAmt));
+                        healed = true;
+                    }
+                }
+                return healed;
+            }
+
+            case SUMMON_TOTEM -> {
+                String entityTypeName = action.getStringParam("entity", "IRON_GOLEM").toUpperCase(Locale.ROOT);
+                int duration = Math.min(action.getIntParam("duration", 10), 60);
+                Location spawnLoc = player.getLocation().add(0, 1, 0);
+                try {
+                    EntityType et = EntityType.valueOf(entityTypeName);
+                    Entity summoned = world.spawnEntity(spawnLoc, et);
+                    if (summoned instanceof Mob mob) {
+                        mob.setAI(true);
+                        mob.setRemoveWhenFarAway(false);
+                        if (target != null && target.isValid()) mob.setTarget(target);
+                    }
+                    if (summoned instanceof Tameable tameable) {
+                        tameable.setOwner(player);
+                    }
+                    world.spawnParticle(Particle.TOTEM_OF_UNDYING, spawnLoc, 30, 0.5, 0.5, 0.5, 0.5);
+                    world.playSound(spawnLoc, Sound.ENTITY_EVOKER_PREPARE_WOLOLO, 0.7f, 0.9f);
+                    Entity finalSummoned = summoned;
+                    Bukkit.getScheduler().runTaskLater(com.ultra.uskill.USkillPlugin.getInstance(), () -> {
+                        if (finalSummoned.isValid() && !finalSummoned.isDead()) {
+                            finalSummoned.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, finalSummoned.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.5);
+                            finalSummoned.remove();
+                        }
+                    }, duration * 20L);
+                } catch (Exception e) {
+                    Bukkit.getLogger().warning("[USkill] Failed to summon totem " + entityTypeName + " in skill " + skill.getId() + ": " + e.getMessage());
+                    return false;
+                }
+                return true;
+            }
+
+            case DASH -> {
+                double distance = action.getDoubleParam("distance", 5.0);
+                Vector dir = player.getLocation().getDirection().normalize();
+                Vector dashVel = dir.clone().multiply(distance / 2.0);
+                dashVel.setY(Math.max(dashVel.getY(), 0.1));
+                player.setVelocity(dashVel);
+                player.setFallDistance(-100);
+                world.spawnParticle(Particle.CLOUD, loc.clone().add(0, 0.2, 0), 20, 0.3, 0.1, 0.3, 0.02);
+                world.spawnParticle(Particle.POOF, loc.clone().add(0, 0.5, 0), 15, 0.3, 0.3, 0.3, 0.01);
+                world.playSound(loc, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 0.7f, 1.5f);
+                return true;
+            }
+
+            case CONSUME_MANA -> {
+                double amount = action.getDoubleParam("amount", 10.0);
+                com.ultra.uskill.USkillPlugin plugin = com.ultra.uskill.USkillPlugin.getInstance();
+                com.ultra.uskill.mana.ManaManager mana = plugin.getManaManager();
+                if (mana == null) return false;
+                if (mana.consumeMana(player, amount)) {
+                    if (action.getBooleanParam("show-bar", true)) {
+                        // The HUD task will auto-refresh
+                    }
+                    return true;
+                } else {
+                    if (!action.getBooleanParam("silent", false)) {
+                        player.sendMessage(com.ultra.ucore.util.TextUtil.parse(
+                                plugin.getConfig().getString("mana.no-mana-message", "<red>Not enough mana! Need %s MP").formatted((int) amount)
+                        ));
+                    }
+                    return false;
+                }
             }
 
             default -> { return false; }
