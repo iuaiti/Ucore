@@ -20,21 +20,17 @@ public class ManaManager {
     private int regenTaskId = -1;
     private int hudTaskId = -1;
 
-    private static final String HUD_CONFIG_PATH = "mana.hud";
-
     public ManaManager(JavaPlugin plugin, SkillTreeManager skillTreeManager) {
         this.plugin = plugin;
         this.skillTreeManager = skillTreeManager;
     }
 
     public void start() {
-        plugin.saveResource("skill_tree.yml", false);
-
         long regenInterval = plugin.getConfig().getInt("mana.regen-interval-ticks", 20);
-        long hudInterval = plugin.getConfig().getInt("mana.hud-interval-ticks", 10);
+        long hudInterval = plugin.getConfig().getInt("mana.hud-interval-ticks", 20);
 
         this.regenTaskId = Bukkit.getScheduler().runTaskTimer(plugin, this::tickRegen, regenInterval, regenInterval).getTaskId();
-        this.hudTaskId = Bukkit.getScheduler().runTaskTimer(plugin, this::tickHud, 0L, hudInterval).getTaskId();
+        this.hudTaskId = Bukkit.getScheduler().runTaskTimer(plugin, this::tickHud, 40L, hudInterval).getTaskId();
     }
 
     public void stop() {
@@ -50,6 +46,12 @@ public class ManaManager {
             double max = base + fromStats;
             return Math.max(0, max);
         });
+    }
+
+    public boolean hasManaStats(Player player) {
+        PlayerStats stats = skillTreeManager.getPlayerStats(player.getUniqueId());
+        return stats.get(StatType.MANA) > 0 || stats.get(StatType.MANA_REGEN) > 0
+                || mana.containsKey(player.getUniqueId());
     }
 
     public void invalidateMaxMana(Player player) {
@@ -82,6 +84,10 @@ public class ManaManager {
         setMana(player, Math.min(max, current + amount));
     }
 
+    public void refillMana(Player player) {
+        setMana(player, getMaxMana(player));
+    }
+
     private void tickRegen() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (!player.isValid()) continue;
@@ -96,9 +102,9 @@ public class ManaManager {
     private void tickHud() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (!player.isValid()) continue;
-            if (plugin.getConfig().getBoolean("mana.hud-enabled", true)) {
-                sendManaHud(player);
-            }
+            if (!plugin.getConfig().getBoolean("mana.hud-enabled", true)) continue;
+            if (!hasManaStats(player)) continue;
+            sendManaHud(player);
         }
     }
 
@@ -108,7 +114,7 @@ public class ManaManager {
         if (max <= 0) return;
 
         int barLength = plugin.getConfig().getInt("mana.bar-length", 10);
-        int filled = (int) Math.round((current / max) * barLength);
+        int filled = Math.max(0, Math.min(barLength, (int) Math.round((current / max) * barLength)));
         int empty = barLength - filled;
 
         String fillChar = plugin.getConfig().getString("mana.fill-char", "█");
@@ -116,17 +122,12 @@ public class ManaManager {
         String manaColor = plugin.getConfig().getString("mana.color", "<aqua>");
         String emptyColor = plugin.getConfig().getString("mana.empty-color", "<dark_gray>");
 
-        String bar = manaColor + fillChar.repeat(Math.max(0, filled))
-                   + emptyColor + emptyChar.repeat(Math.max(0, empty));
+        String bar = manaColor + fillChar.repeat(filled) + emptyColor + emptyChar.repeat(empty);
 
-        int percent = max > 0 ? (int) ((current / max) * 100) : 0;
-        String manaText = plugin.getConfig().getString("mana.format", "<dark_aqua>✦ %s <gray>%d/%d <dark_gray>(%d%%)")
-                .formatted(bar, (int) current, (int) max, percent);
+        int percent = (int) ((current / max) * 100);
+        String manaText = "<dark_aqua>✦ " + bar + " <gray>" + (int) current + "/" + (int) max + " <dark_gray>(" + percent + "%)";
 
-        String hudFormat = plugin.getConfig().getString("mana.hud-format",
-                "<gray>━━━━━━━━━━━━━━" + manaText);
-
-        var component = com.ultra.ucore.util.TextUtil.parse(hudFormat);
+        var component = com.ultra.ucore.util.TextUtil.parse(manaText);
         player.sendActionBar(component);
     }
 
