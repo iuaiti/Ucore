@@ -94,6 +94,10 @@ public abstract class BaseMenu {
             }
 
             ItemStack itemStack = itemLoader.build(itemRef, player);
+            if (itemStack == null) {
+                continue;
+            }
+
             Consumer<org.bukkit.event.inventory.InventoryClickEvent> clickHandler = switch (action.toUpperCase()) {
                 case "OPEN_MENU" -> event -> menuManager.open((Player) event.getWhoClicked(), target);
                 case "BACK" -> event -> menuManager.open((Player) event.getWhoClicked(), target);

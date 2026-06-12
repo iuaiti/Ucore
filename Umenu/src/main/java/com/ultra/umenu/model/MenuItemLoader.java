@@ -62,11 +62,17 @@ public final class MenuItemLoader {
 
         if (hasTexture) {
             stack = HeadUtil.createHead(item.texture());
+            if (stack == null) {
+                stack = new ItemStack(item.material(), Math.max(1, item.amount()));
+            }
         } else {
             stack = new ItemStack(item.material(), Math.max(1, item.amount()));
         }
 
         ItemMeta meta = stack.getItemMeta();
+        if (meta == null) {
+            return stack;
+        }
 
         if (!item.name().isEmpty()) {
             String parsedName = applyPlaceholders(item.name(), player);
