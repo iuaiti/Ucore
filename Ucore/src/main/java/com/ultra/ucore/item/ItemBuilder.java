@@ -24,6 +24,9 @@ public final class ItemBuilder {
     private ItemBuilder(Material material) {
         this.itemStack = new ItemStack(material);
         this.meta = itemStack.getItemMeta();
+        if (this.meta == null) {
+            throw new IllegalStateException("Cannot get ItemMeta for material: " + material);
+        }
     }
 
     public static ItemBuilder create(Material material) {
