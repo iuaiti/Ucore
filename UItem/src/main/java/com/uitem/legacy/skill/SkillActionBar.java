@@ -26,7 +26,7 @@ public class SkillActionBar {
 
     public void start() {
         if (task != null) task.cancel();
-        task = plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, scheduledTask -> tick(), 40L, 20L);
+        task = plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, scheduledTask -> tick(), 0L, 5L);
     }
 
     public void shutdown() {
