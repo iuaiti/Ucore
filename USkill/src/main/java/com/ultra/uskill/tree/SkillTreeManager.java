@@ -99,15 +99,14 @@ public class SkillTreeManager {
             return false;
         }
 
-        int nextLevel = currentLevel;
-        int cost = node.getCost(nextLevel);
+        int cost = node.getCost(currentLevel);
 
         for (String prereqId : node.getPrerequisites()) {
             SkillTreeNode prereq = getNode(prereqId);
             if (prereq == null) continue;
             int prereqLevel = data.getSkillLevel(prereqId);
-            if (prereqLevel < prereq.getMaxLevel()) {
-                player.sendMessage(TextUtil.parse("<red>You need to max out <gold>" + prereq.getDisplayName() + " <red>first!</red>"));
+            if (prereqLevel <= 0) {
+                player.sendMessage(TextUtil.parse("<red>You need to unlock <gold>" + prereq.getDisplayName() + " <red>first!</red>"));
                 return false;
             }
         }

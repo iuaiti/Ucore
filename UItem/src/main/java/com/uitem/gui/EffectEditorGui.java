@@ -112,9 +112,9 @@ public class EffectEditorGui extends AbstractGui {
         for (int ti = 0; ti < TRIGGERS.size(); ti++) {
             final String trig = TRIGGERS.get(ti);
             boolean sel = trig.equalsIgnoreCase(pending.getTrigger());
-            Material mat = sel ? Material.LIME_STAINED_GLASS_PANE : Material.GRAY_STAINED_GLASS_PANE;
+            Material mat = sel ? Material.LIME_STAINED_GLASS_PANE : triggerMaterial(trig);
             setItem(tStart + ti, createItem(mat,
-                    (sel ? "<green>✔ " : "<gray>") + trig,
+                    (sel ? "<green>✔ " : "<gold>") + trig,
                     List.of("<gray>Trigger: " + trig,
                             sel ? "<green>Đã chọn" : "<yellow>Click để chọn")),
                     ev -> {
@@ -241,6 +241,17 @@ public class EffectEditorGui extends AbstractGui {
 
         // Nút Quay lại ở dưới
         setItem(53, createBackButton(), ev -> goBack());
+    }
+
+    private Material triggerMaterial(String trig) {
+        return switch (trig) {
+            case "HIT"      -> Material.IRON_SWORD;
+            case "DAMAGE"   -> Material.SHIELD;
+            case "DIE"      -> Material.SKELETON_SKULL;
+            case "EQUIP"    -> Material.LEATHER_CHESTPLATE;
+            case "FULL_SET" -> Material.DIAMOND_CHESTPLATE;
+            default         -> Material.GRAY_DYE;
+        };
     }
 
     private String safe(String s) {

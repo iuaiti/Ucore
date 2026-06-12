@@ -368,18 +368,15 @@ public class UItemActionListener implements Listener {
             if (t == null) continue;
 
             if ("REFLECT".equals(t) && dmgEvent != null && !forTarget) {
-                // Reflect usually from the victim's perspective
                 double pct = eff.getValue() > 0 ? eff.getValue() : 20.0;
                 double reflectDmg = dmgEvent.getDamage() * (pct / 100.0);
                 if (dmgEvent.getDamager() instanceof org.bukkit.entity.LivingEntity attacker) {
-                    double newHealth = Math.max(0, attacker.getHealth() - reflectDmg);
-                    attacker.setHealth(newHealth);
+                    attacker.damage(reflectDmg);
                 }
             } else if ("EXTRA_DAMAGE".equals(t) && dmgEvent != null && !forTarget) {
                 double extra = eff.getValue() > 0 ? eff.getValue() : 3.0;
                 if (dmgEvent.getEntity() instanceof org.bukkit.entity.LivingEntity target) {
-                    double newHealth = Math.max(0, target.getHealth() - extra);
-                    target.setHealth(newHealth);
+                    target.damage(extra);
                 }
             }
         }
