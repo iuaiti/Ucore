@@ -1,73 +1,21 @@
-All Rights Reserved(ARR) for Minecraft Plugins
+All Rights Reserved (ARR)
 
-Copyright (c) 2026 iuaititi
-email:huy594481@gmail.com
+Copyright © 2024 iuaititi. All rights reserved.
 
-All rights reserved.
+Permission is NOT granted to copy, modify, merge, publish, distribute,
+sublicense, and/or sell copies of this software and associated documentation
+files (the "Software"), nor to permit persons to whom the Software is
+furnished to do so, subject to any condition whatsoever.
 
-────────────────────────────────────────────────────────────────
-I. GRANT OF LICENSE
-────────────────────────────────────────────────────────────────
+The Software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
-Uitem (hereinafter referred to as "The Software") is licensed, not sold.
+Unauthorized access, use, reproduction, or distribution of this Software is
+strictly prohibited and may result in civil and criminal penalties.
 
-You are granted a non-exclusive, non-transferable, revocable license to use The Software on your own Minecraft servers.
-
-You MAY:
-- Install and use The Software on an unlimited number of Minecraft servers that you own or manage.
-- Use The Software for commercial purposes (e.g., donation-based servers, selling ranks or items) without paying any additional licensing fees.
-
-────────────────────────────────────────────────────────────────
-II. RESTRICTIONS (What you may NOT do)
-────────────────────────────────────────────────────────────────
-
-You are PROHIBITED from doing any of the following:
-
-1. REDISTRIBUTE
-   - You may NOT upload, share, re-upload, or distribute The Software's .jar file on any platform (including but not limited to: Discord, MediaFire, Google Drive, Mega, Minecraft forums, plugin websites, or file-sharing sites) outside the official distribution channel designated by the author.
-
-2. REVERSE ENGINEER
-   - You may NOT reverse engineer, disassemble, decompile, or attempt to reconstruct, identify, or discover any source code, underlying ideas, or algorithms of The Software by any means.
-
-3. MODIFY
-   - You may NOT modify, patch, fork, create derivative works, or alter The Software in any way.
-
-4. BYPASS
-   - You may NOT bypass, disable, interfere with, or circumvent any copyright protection, license validation, integrity check, or security mechanism of The Software (if any).
-
-5. SELL
-   - You may NOT sell, rent, lease, sublicense, or commercially distribute The Software (except for using it on your own servers as permitted in Section I).
-
-6. COMPETE
-   - You may NOT use the ideas, structure, logic, or code from The Software to develop another plugin or software with similar functionality that competes directly with or replaces the original Software.
-
-────────────────────────────────────────────────────────────────
-III. USER RESPONSIBILITIES
-────────────────────────────────────────────────────────────────
-
-- You are responsible for ensuring that all users (including staff, admins, or anyone with access to the plugin file) on your server comply with the terms of this License.
-- You may NOT remove, hide, or obscure any author credits (e.g., /plugin info command, console startup messages) from The Software.
-
-────────────────────────────────────────────────────────────────
-IV. TERMINATION
-────────────────────────────────────────────────────────────────
-
-This License is effective until terminated. Your rights under this License will terminate automatically without notice if you fail to comply with any term of this License. Upon termination, you must immediately cease all use of The Software and delete all copies of The Software from your servers.
-
-────────────────────────────────────────────────────────────────
-V. DISCLAIMER OF WARRANTY
-────────────────────────────────────────────────────────────────
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-────────────────────────────────────────────────────────────────
-VI. GOVERNING LAW
-────────────────────────────────────────────────────────────────
-
-This License shall be governed by and construed in accordance with the laws of [Your Country], without regard to its conflict of laws principles. Any legal action or proceeding arising under this License shall be brought exclusively in the courts located in [Your City / Country].
-
-────────────────────────────────────────────────────────────────
-VII. CONTACT & REPORTING VIOLATIONS
-────────────────────────────────────────────────────────────────
-email:huy594481@gmail.com
---- END OF LICENSE ---
+For licensing inquiries or permission requests, contact the copyright holder.
