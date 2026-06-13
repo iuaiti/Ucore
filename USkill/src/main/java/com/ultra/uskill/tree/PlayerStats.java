@@ -52,32 +52,34 @@ public class PlayerStats {
     }
 
     private void applyAttributeModifiers(Player player) {
-        AttributeInstance maxHealth = player.getAttribute(Attribute.MAX_HEALTH);
-        if (maxHealth != null) {
-            double bonus = get(StatType.MAX_HEALTH);
-            double base = maxHealth.getDefaultValue();
-            maxHealth.setBaseValue(base + bonus);
+        double healthBonus = get(StatType.MAX_HEALTH);
+        if (healthBonus != 0) {
+            AttributeInstance maxHealth = player.getAttribute(Attribute.MAX_HEALTH);
+            if (maxHealth != null) maxHealth.setBaseValue(maxHealth.getDefaultValue() + healthBonus);
         }
 
-        AttributeInstance movement = player.getAttribute(Attribute.MOVEMENT_SPEED);
-        if (movement != null) {
-            double bonus = get(StatType.MOVEMENT_SPEED) * 0.01;
-            double base = movement.getDefaultValue();
-            movement.setBaseValue(base + base * bonus);
+        double speedBonus = get(StatType.MOVEMENT_SPEED);
+        if (speedBonus != 0) {
+            AttributeInstance movement = player.getAttribute(Attribute.MOVEMENT_SPEED);
+            if (movement != null) {
+                double base = movement.getDefaultValue();
+                movement.setBaseValue(base + base * (speedBonus * 0.01));
+            }
         }
 
-        AttributeInstance attackSpeed = player.getAttribute(Attribute.ATTACK_SPEED);
-        if (attackSpeed != null) {
-            double bonus = get(StatType.ATTACK_SPEED) * 0.01;
-            double base = attackSpeed.getDefaultValue();
-            attackSpeed.setBaseValue(base + base * bonus);
+        double atkSpdBonus = get(StatType.ATTACK_SPEED);
+        if (atkSpdBonus != 0) {
+            AttributeInstance attackSpeed = player.getAttribute(Attribute.ATTACK_SPEED);
+            if (attackSpeed != null) {
+                double base = attackSpeed.getDefaultValue();
+                attackSpeed.setBaseValue(base + base * (atkSpdBonus * 0.01));
+            }
         }
 
-        AttributeInstance luck = player.getAttribute(Attribute.LUCK);
-        if (luck != null) {
-            double bonus = get(StatType.LUCK);
-            double base = luck.getDefaultValue();
-            luck.setBaseValue(base + bonus);
+        double luckBonus = get(StatType.LUCK);
+        if (luckBonus != 0) {
+            AttributeInstance luck = player.getAttribute(Attribute.LUCK);
+            if (luck != null) luck.setBaseValue(luck.getDefaultValue() + luckBonus);
         }
     }
 

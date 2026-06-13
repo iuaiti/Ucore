@@ -49,9 +49,9 @@ public class ManaManager {
     }
 
     public boolean hasManaStats(Player player) {
-        PlayerStats stats = skillTreeManager.getPlayerStats(player.getUniqueId());
-        return stats.get(StatType.MANA) > 0 || stats.get(StatType.MANA_REGEN) > 0
-                || mana.containsKey(player.getUniqueId());
+        // Luôn hiển thị mana bar nếu base-max > 0 (tất cả player đều có mana pool cơ bản)
+        double baseMax = plugin.getConfig().getDouble("mana.base-max", 20);
+        return baseMax > 0;
     }
 
     public void invalidateMaxMana(Player player) {

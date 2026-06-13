@@ -134,9 +134,11 @@ public final class USkillPlugin extends JavaPlugin implements USkillAPI, Listene
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (skillTreeManager != null) {
-            skillTreeManager.onPlayerJoin(event.getPlayer());
-        }
+        if (skillTreeManager == null) return;
+        // Delay 1 tick: attribute packets are sent to the client during join.
+        // Modifying base values synchronously inside the event races with that packet,
+        // causing a transient speed/health visual glitch on the client.
+        Bukkit.getScheduler().runTaskLater(this, () -> skillTreeManager.onPlayerJoin(event.getPlayer()), 1L);
     }
 
     @EventHandler

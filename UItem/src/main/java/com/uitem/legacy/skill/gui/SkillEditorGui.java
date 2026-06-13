@@ -43,6 +43,7 @@ public class SkillEditorGui extends AbstractGui {
     private static final List<SkillTrigger> PASSIVE_TRIGGERS = List.of(
             SkillTrigger.HIT, SkillTrigger.TAKE_DAMAGE, SkillTrigger.KILL,
             SkillTrigger.EQUIP, SkillTrigger.UNEQUIP,
+            SkillTrigger.BREAK_BLOCK,
             SkillTrigger.PERIODIC, SkillTrigger.WHILE_HOLDING, SkillTrigger.WHILE_WEARING
     );
 
