@@ -33,6 +33,7 @@ public final class USkillPlugin extends JavaPlugin implements USkillAPI, Listene
     private SkillTreeManager skillTreeManager;
     private ManaManager manaManager;
     private ItemSkillListener itemSkillListener;
+    private com.ultra.uskill.xp.DailyCapTracker dailyCapTracker;
 
     @Override
     public void onEnable() {
@@ -85,8 +86,25 @@ public final class USkillPlugin extends JavaPlugin implements USkillAPI, Listene
                     return String.valueOf((int) ((manaManager.getMana(ctx.player()) / max) * 100));
                 });
 
+        // ─── Skill XP (daily cap tracker + all listeners) ───
+        this.dailyCapTracker = new com.ultra.uskill.xp.DailyCapTracker();
+
         // Register join/quit events for skill tree stats
         Bukkit.getPluginManager().registerEvents(this, this);
+
+        // Mob XP
+        Bukkit.getPluginManager().registerEvents(
+                new com.ultra.uskill.listener.MobXpListener(this, dailyCapTracker), this);
+
+        // Mining, Farming, Fishing, Enchanting, LevelUp
+        Bukkit.getPluginManager().registerEvents(
+                new com.ultra.uskill.listener.SkillXpListener(this, dailyCapTracker), this);
+
+        // Daily cap reset — mỗi 24 giờ (20 tick/s × 3600 s/h × 24 h)
+        long ticksPerDay = 20L * 3600 * 24;
+        getServer().getGlobalRegionScheduler().runAtFixedRate(this,
+                task -> dailyCapTracker.resetAll(), ticksPerDay, ticksPerDay);
+        getLogger().info("║        ◆ Daily XP cap reset: every 24h");
 
         // ─── Item Skill Bridge (UItem soft-depend) ───
         // Dùng isPluginEnabled thay vì getPlugin != null để đảm bảo UItem đã onEnable() thành công
@@ -122,6 +140,10 @@ public final class USkillPlugin extends JavaPlugin implements USkillAPI, Listene
 
     public ManaManager getManaManager() {
         return manaManager;
+    }
+
+    public com.ultra.uskill.xp.DailyCapTracker getDailyCapTracker() {
+        return dailyCapTracker;
     }
 
     public SkillTreeManager getSkillTreeManager() {
@@ -230,6 +252,7 @@ public final class USkillPlugin extends JavaPlugin implements USkillAPI, Listene
         skill.setDisplayName(objStr(data.get("display-name"), id));
         skill.setTrigger(SkillTrigger.fromString(objStr(data.get("trigger"), "RIGHT_CLICK")));
         skill.setCooldown(objDouble(data.get("cooldown"), 0.0));
+        skill.setManaCost(objDouble(data.get("mana-cost"), 0.0));
         skill.setCancelEvent(objBool(data.get("cancel-event"), true));
         skill.setChance(objDouble(data.get("chance"), 100.0));
         skill.setPeriodTicks(objInt(data.get("period-ticks"), 20));
@@ -292,6 +315,7 @@ public final class USkillPlugin extends JavaPlugin implements USkillAPI, Listene
             data.put("display-name", sk.getDisplayName());
             if (sk.getTrigger() != null) data.put("trigger", sk.getTrigger().name());
             if (sk.getCooldown() > 0) data.put("cooldown", sk.getCooldown());
+            if (sk.getManaCost() > 0) data.put("mana-cost", sk.getManaCost());
             data.put("cancel-event", sk.isCancelEvent());
             if (sk.getChance() < 100) data.put("chance", sk.getChance());
             if (sk.getPeriodTicks() != 20) data.put("period-ticks", sk.getPeriodTicks());

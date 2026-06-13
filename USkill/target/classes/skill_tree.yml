@@ -5,6 +5,48 @@
 
 default-points: 10
 
+# ─── Mob XP (Skill Points từ giết quái) ─────────────────────────────────────
+mob-xp:
+  enabled: true
+  # Màu thông báo action bar khi nhận SP
+  notify-color: "<gold>"
+  # SP mặc định cho mob không có trong danh sách (0 = không tặng)
+  default: 0
+  # SP theo EntityType (tên viết hoa, chuẩn Bukkit)
+  values:
+    # ── Common ──
+    ZOMBIE: 1
+    SKELETON: 1
+    SPIDER: 1
+    CAVE_SPIDER: 1
+    CREEPER: 2
+    SLIME: 1
+    DROWNED: 1
+    HUSK: 1
+    STRAY: 1
+    # ── Medium ──
+    ENDERMAN: 3
+    WITCH: 3
+    PHANTOM: 3
+    PILLAGER: 4
+    VINDICATOR: 4
+    BLAZE: 4
+    MAGMA_CUBE: 2
+    GHAST: 4
+    PIGLIN_BRUTE: 5
+    ZOMBIFIED_PIGLIN: 2
+    # ── Hard ──
+    BREEZE: 6
+    EVOKER: 8
+    RAVAGER: 10
+    GUARDIAN: 5
+    SHULKER: 6
+    # ── Boss ──
+    ELDER_GUARDIAN: 15
+    WITHER: 50
+    ENDER_DRAGON: 100
+    WARDEN: 30
+
 skills:
   # ═══ TIER 1 - Basic ═══
   strength:

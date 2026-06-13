@@ -157,7 +157,7 @@ public class ItemCatalogGui extends AbstractGui {
             setItem(ITEM_SLOTS[i], item, ev -> {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
                 if (fHasRecipe) {
-                    new RecipeDetailGui(plugin, player, fId).openAsChildOf(this);
+                    new RpgRecipeGui(plugin, player, fId).openAsChildOf(this);
                 } else {
                     player.sendMessage(TextUtil.info(
                         "Vật phẩm <white>" + fId + " <gray>chưa có công thức chế tạo."));

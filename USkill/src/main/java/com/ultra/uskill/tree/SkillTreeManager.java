@@ -71,6 +71,11 @@ public class SkillTreeManager {
         return config.getInt("default-points", 5);
     }
 
+    /** Trả về section mob-xp từ config (null nếu không tồn tại). */
+    public org.bukkit.configuration.ConfigurationSection getMobXpSection() {
+        return config.getConfigurationSection("mob-xp");
+    }
+
     public PlayerSkillData getPlayerData(UUID playerId) {
         return playerData.computeIfAbsent(playerId, pid -> {
             PlayerSkillData data = loadFromStorage(pid);
@@ -200,7 +205,14 @@ public class SkillTreeManager {
         PlayerSkillData data = getPlayerData(player.getUniqueId());
         data.addSkillPoints(amount);
         savePlayerData(player.getUniqueId(), data);
-        player.sendMessage(TextUtil.parse("<green>+ " + amount + " Skill Points!</green>"));
+        player.sendMessage(com.ultra.ucore.util.TextUtil.parse("<green>+ " + amount + " Skill Points!</green>"));
+    }
+
+    /** Tặng điểm không kèm chat message — dùng cho mob XP (action bar đã thông báo). */
+    public void givePointsQuiet(Player player, int amount) {
+        PlayerSkillData data = getPlayerData(player.getUniqueId());
+        data.addSkillPoints(amount);
+        savePlayerData(player.getUniqueId(), data);
     }
 
     public void givePointsAll(int amount) {

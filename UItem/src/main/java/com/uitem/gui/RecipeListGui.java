@@ -121,7 +121,7 @@ public class RecipeListGui extends AbstractGui {
             String fid = id;
             setItem(SLOTS[i], item, ev -> {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
-                new RecipeDetailGui(plugin, player, fid).openAsChildOf(this);
+                new RpgRecipeGui(plugin, player, fid).openAsChildOf(this);
             });
         }
 

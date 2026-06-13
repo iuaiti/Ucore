@@ -17,6 +17,8 @@ public class ManaManager {
     private final SkillTreeManager skillTreeManager;
     private final Map<UUID, Double> mana = new ConcurrentHashMap<>();
     private final Map<UUID, Double> maxManaCache = new ConcurrentHashMap<>();
+    // Pending action bar notifications (override mana HUD for N ticks)
+    private final Map<UUID, PendingNotification> pendingNotifications = new ConcurrentHashMap<>();
     private int regenTaskId = -1;
     private int hudTaskId = -1;
 
@@ -103,6 +105,21 @@ public class ManaManager {
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (!player.isValid()) continue;
             if (!plugin.getConfig().getBoolean("mana.hud-enabled", true)) continue;
+
+            UUID pid = player.getUniqueId();
+
+            // Pending notification overrides mana HUD for its duration
+            PendingNotification notif = pendingNotifications.get(pid);
+            if (notif != null) {
+                if (notif.expired()) {
+                    pendingNotifications.remove(pid);
+                } else {
+                    player.sendActionBar(notif.component());
+                    pendingNotifications.put(pid, notif.tick());
+                    continue;
+                }
+            }
+
             if (!hasManaStats(player)) continue;
             sendManaHud(player);
         }
@@ -135,5 +152,22 @@ public class ManaManager {
         UUID pid = player.getUniqueId();
         mana.remove(pid);
         maxManaCache.remove(pid);
+        pendingNotifications.remove(pid);
+    }
+
+    /**
+     * Hiển thị thông báo tạm thời thay cho mana HUD (dùng cho mob XP, skill feedback...).
+     * @param player  người nhận
+     * @param message MiniMessage string
+     * @param ticks   số tick hiển thị (20 ticks = 1 giây)
+     */
+    public void showNotification(Player player, String message, int ticks) {
+        pendingNotifications.put(player.getUniqueId(),
+                new PendingNotification(com.ultra.ucore.util.TextUtil.parse(message), ticks));
+    }
+
+    private record PendingNotification(net.kyori.adventure.text.Component component, int remaining) {
+        PendingNotification tick() { return new PendingNotification(component, remaining - 1); }
+        boolean expired() { return remaining <= 0; }
     }
 }

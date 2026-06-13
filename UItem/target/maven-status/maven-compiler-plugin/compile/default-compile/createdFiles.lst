@@ -1,6 +1,7 @@
 com/uitem/gui/RarityListGui.class
 com/uitem/gui/AttributePresetGui$AttrPreset.class
 com/uitem/command/UItemCommand$GiveTarget.class
+com/uitem/gui/RpgRecipeGui$IngEntry.class
 com/uitem/util/Messages$1.class
 com/uitem/util/PotionEffectRegistry.class
 com/uitem/storage/StorageManager$LoadResult.class
@@ -54,6 +55,7 @@ com/uitem/search/SearchManager.class
 com/uitem/api/events/UItemEquipEvent.class
 com/uitem/util/SkillRequirementHelper.class
 com/uitem/util/PotionEffectRegistry$PotionInfo.class
+com/uitem/gui/RpgRecipeGui.class
 com/uitem/api/events/UItemGiveEvent.class
 com/uitem/gui/CraftingGui.class
 com/uitem/gui/ItemTemplateGui.class

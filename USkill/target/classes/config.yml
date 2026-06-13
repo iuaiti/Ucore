@@ -17,3 +17,76 @@ mana:
 
   # Message when not enough mana
   no-mana-message: "<red>Not enough mana! Need %s MP"
+
+# ─── Skill XP Sources ────────────────────────────────────────────────────────
+# SP kiếm được theo hoạt động. Daily cap = giới hạn SP/ngày theo nguồn.
+skill-xp:
+  # Giới hạn SP mỗi ngày theo nguồn (0 = không giới hạn)
+  daily-caps:
+    mob: 100
+    mining: 50
+    farming: 30
+    fishing: 20
+    enchanting: 30
+    levelup: 50
+
+  mining:
+    enabled: true
+    notify-color: "<yellow>"
+    blocks:
+      COAL_ORE: 1
+      DEEPSLATE_COAL_ORE: 1
+      IRON_ORE: 1
+      DEEPSLATE_IRON_ORE: 1
+      COPPER_ORE: 1
+      DEEPSLATE_COPPER_ORE: 1
+      REDSTONE_ORE: 1
+      DEEPSLATE_REDSTONE_ORE: 1
+      LAPIS_ORE: 2
+      DEEPSLATE_LAPIS_ORE: 2
+      GOLD_ORE: 2
+      DEEPSLATE_GOLD_ORE: 2
+      NETHER_GOLD_ORE: 2
+      NETHER_QUARTZ_ORE: 1
+      DIAMOND_ORE: 5
+      DEEPSLATE_DIAMOND_ORE: 5
+      EMERALD_ORE: 4
+      DEEPSLATE_EMERALD_ORE: 4
+      ANCIENT_DEBRIS: 8
+
+  farming:
+    enabled: true
+    notify-color: "<green>"
+    require-fully-grown: true
+    crops:
+      WHEAT: 1
+      CARROTS: 1
+      POTATOES: 1
+      BEETROOTS: 1
+      PUMPKIN: 1
+      MELON: 1
+      NETHER_WART: 2
+      COCOA: 1
+      SUGAR_CANE: 1
+      BAMBOO: 1
+      SWEET_BERRY_BUSH: 1
+      CAVE_VINES_PLANT: 1
+      CHORUS_FLOWER: 2
+      PITCHER_PLANT: 2
+
+  fishing:
+    enabled: true
+    notify-color: "<aqua>"
+    fish: 1
+    treasure: 3
+    junk: 0
+
+  enchanting:
+    enabled: true
+    notify-color: "<light_purple>"
+    sp-per-5-levels: 1
+
+  levelup:
+    enabled: true
+    notify-color: "<green>"
+    sp-per-level: 1

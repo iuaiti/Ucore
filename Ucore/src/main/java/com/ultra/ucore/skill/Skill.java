@@ -16,6 +16,9 @@ public class Skill {
 
     private int periodTicks = 20;
 
+    // Mana cost consumed when skill fires (0 = free)
+    private double manaCost = 0.0;
+
     public Skill() {}
 
     public Skill(String id) {
@@ -53,6 +56,9 @@ public class Skill {
     public int getPeriodTicks() { return Math.max(1, periodTicks); }
     public void setPeriodTicks(int periodTicks) { this.periodTicks = Math.max(1, periodTicks); }
 
+    public double getManaCost() { return manaCost; }
+    public void setManaCost(double manaCost) { this.manaCost = Math.max(0, manaCost); }
+
     public void addAction(SkillAction action) {
         if (action != null) actions.add(action);
     }
@@ -69,6 +75,7 @@ public class Skill {
         s.cancelEvent = this.cancelEvent;
         s.chance = this.chance;
         s.periodTicks = this.periodTicks;
+        s.manaCost    = this.manaCost;
 
         s.conditions = new ArrayList<>();
         for (SkillCondition c : this.conditions) s.conditions.add(c.copy());

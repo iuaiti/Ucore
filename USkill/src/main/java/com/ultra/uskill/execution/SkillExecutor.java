@@ -82,6 +82,24 @@ public final class SkillExecutor {
             if (!checkConditions(player, skill, target)) continue;
             if (!cooldowns.isReady(player, itemId, skill.getId(), skill.getCooldown())) continue;
 
+            // Mana cost check — consume BEFORE executing (fail-fast if insufficient)
+            double manaCost = skill.getManaCost();
+            if (manaCost > 0) {
+                var uskill = com.ultra.uskill.USkillPlugin.getInstance();
+                if (uskill != null && uskill.getManaManager() != null) {
+                    var mm = uskill.getManaManager();
+                    if (!mm.hasMana(player, manaCost)) {
+                        String msg = uskill.getConfig().getString(
+                                "mana.no-mana-message",
+                                "<red>✦ Không đủ mana! Cần <white>%s MP<red>.")
+                                .formatted((int) manaCost);
+                        player.sendActionBar(com.ultra.ucore.util.TextUtil.parse(msg));
+                        continue; // skip this skill, keep trying others
+                    }
+                    mm.consumeMana(player, manaCost);
+                }
+            }
+
             boolean ok = executeSkillActions(player, skill, target);
             if (ok) {
                 cooldowns.markUsed(player, itemId, skill.getId());

@@ -181,6 +181,28 @@ public class SkillEditorGui extends AbstractGui {
         }
 
         // === Cooldown (row 3) ===
+        // Mana cost (slot 27 — đầu row 3)
+        String manaDisplay = skill.getManaCost() > 0
+                ? String.format("<aqua>%.1f MP", skill.getManaCost())
+                : "<gray>Miễn phí";
+        setItem(27, createItem(Material.LAPIS_LAZULI,
+                "<aqua><bold>Mana Cost: </bold>" + manaDisplay,
+                List.of(
+                        "<gray>Mana tiêu thụ khi kích hoạt skill",
+                        "<gray>0 = miễn phí",
+                        "<yellow>Click để chỉnh"
+                )), ev -> {
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
+            plugin.getChatInputManager().requestInput(player,
+                    "<aqua>Nhập mana cost (ví dụ 10 hoặc 0 = miễn phí):", input -> {
+                        try {
+                            double cost = Double.parseDouble(input.trim());
+                            skill.setManaCost(Math.max(0, cost));
+                        } catch (Exception ignored) {}
+                        saveAndReopen();
+                    }, this::reopen);
+        });
+
         setItem(28, createItem(Material.CLOCK, String.format(Messages.skillEditorCooldown(), skill.getCooldown()),
                 List.of("<yellow>" + Messages.skillEditorCooldownHint().replace("<yellow>", ""))), ev -> {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
