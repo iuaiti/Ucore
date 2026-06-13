@@ -696,7 +696,9 @@ public final class SkillExecutor {
             case PULL -> {
                 if (target == null || !target.isValid()) return false;
                 double power = action.getDoubleParam("power", 1.5);
-                Vector pullVec = player.getLocation().toVector().subtract(target.getLocation().toVector()).normalize().multiply(power);
+                Vector pullVec = player.getLocation().toVector().subtract(target.getLocation().toVector());
+                if (pullVec.lengthSquared() < 1e-10) return false; // same position → NaN guard
+                pullVec.normalize().multiply(power);
                 pullVec.setY(Math.min(pullVec.getY() + 0.3, 1.0));
                 target.setVelocity(pullVec);
                 world.playSound(target.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 0.5f, 0.5f);
@@ -706,7 +708,9 @@ public final class SkillExecutor {
             case PUSH -> {
                 if (target == null || !target.isValid()) return false;
                 double power = action.getDoubleParam("power", 1.5);
-                Vector pushVec = target.getLocation().toVector().subtract(player.getLocation().toVector()).normalize().multiply(power);
+                Vector pushVec = target.getLocation().toVector().subtract(player.getLocation().toVector());
+                if (pushVec.lengthSquared() < 1e-10) return false; // same position → NaN guard
+                pushVec.normalize().multiply(power);
                 pushVec.setY(Math.min(pushVec.getY() + 0.3, 1.0));
                 target.setVelocity(pushVec);
                 world.playSound(target.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 0.8f, 1.5f);
@@ -804,8 +808,9 @@ public final class SkillExecutor {
                 for (Entity e : world.getNearbyEntities(loc, radius, 2, radius)) {
                     if (!(e instanceof LivingEntity le) || le.equals(player)) continue;
                     le.damage(dmg, player);
-                    Vector kb = le.getLocation().toVector().subtract(loc.toVector()).normalize();
-                    kb.setY(0.4);
+                    Vector kb = le.getLocation().toVector().subtract(loc.toVector());
+                    if (kb.lengthSquared() < 1e-10) continue; // same position → NaN guard
+                    kb.normalize().setY(0.4);
                     le.setVelocity(kb);
                     hit = true;
                 }

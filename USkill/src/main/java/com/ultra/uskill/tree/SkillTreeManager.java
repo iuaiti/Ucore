@@ -210,18 +210,39 @@ public class SkillTreeManager {
     }
 
     private PlayerSkillData loadFromStorage(UUID playerId) {
+        // Bukkit's config.get(path) returns MemorySection (NOT Map<?,?>) for nested sections
+        // stored via config.set(path, map). instanceof Map<?,?> always fails → data never loaded.
+        // Fix: use getConfigurationSection() + typed getters to bypass the MemorySection issue.
         String path = "players." + playerId.toString();
-        if (config.contains(path)) {
-            Object raw = config.get(path);
-            if (raw instanceof Map<?, ?> map) {
-                return PlayerSkillData.deserialize(playerId, (Map<String, Object>) map);
+        org.bukkit.configuration.ConfigurationSection section = config.getConfigurationSection(path);
+        if (section == null) return new PlayerSkillData(playerId);
+
+        PlayerSkillData psd = new PlayerSkillData(playerId);
+        psd.setSkillPoints(section.getInt("skill-points", 0));
+        psd.setTotalSpent(section.getInt("total-spent", 0));
+
+        org.bukkit.configuration.ConfigurationSection levelsSection = section.getConfigurationSection("skill-levels");
+        if (levelsSection != null) {
+            for (String skillId : levelsSection.getKeys(false)) {
+                int level = levelsSection.getInt(skillId, 0);
+                if (level > 0) psd.setSkillLevel(skillId, level);
             }
         }
-        return new PlayerSkillData(playerId);
+        return psd;
     }
 
     private void savePlayerData(UUID playerId, PlayerSkillData data) {
-        config.set("players." + playerId.toString(), data.serialize());
+        // Write primitives directly so they're stored as typed values (int), not as nested Maps.
+        // This makes getConfigurationSection() read them back correctly on the same session.
+        String path = "players." + playerId.toString();
+        config.set(path + ".skill-points", data.getSkillPoints());
+        config.set(path + ".total-spent",  data.getTotalSpent());
+        config.set(path + ".skill-levels", null); // clear old skill entries first
+        for (Map.Entry<String, Integer> e : data.getSkillLevels().entrySet()) {
+            if (e.getValue() > 0) {
+                config.set(path + ".skill-levels." + e.getKey(), e.getValue());
+            }
+        }
         try {
             config.save(configFile);
         } catch (IOException e) {

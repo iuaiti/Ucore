@@ -232,13 +232,24 @@ public class ItemSkillListener implements Listener {
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
     private boolean isUItemAvailable() {
-        return com.uitem.api.UItemAPI.isAvailable();
+        // Kiểm tra plugin enabled trước (không cần load class) để tránh NCDFE khi UItem disabled
+        try {
+            if (!org.bukkit.Bukkit.getPluginManager().isPluginEnabled("UItem")) return false;
+            return com.uitem.api.UItemAPI.isAvailable();
+        } catch (NoClassDefFoundError e) {
+            // UItem jar không còn trên classpath (bị remove hoặc reload) — không crash task
+            return false;
+        }
     }
 
     private com.uitem.UItemData getUItemData(ItemStack item) {
-        if (!isUItemAvailable()) return null;
-        if (item == null || item.getType().isAir()) return null;
-        return com.uitem.api.UItemAPI.get().getUItemData(item).orElse(null);
+        try {
+            if (!isUItemAvailable()) return null;
+            if (item == null || item.getType().isAir()) return null;
+            return com.uitem.api.UItemAPI.get().getUItemData(item).orElse(null);
+        } catch (NoClassDefFoundError e) {
+            return null;
+        }
     }
 
     private boolean hasCancelSkill(List<Skill> skills, SkillTrigger trigger) {

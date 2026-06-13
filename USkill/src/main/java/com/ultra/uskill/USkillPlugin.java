@@ -89,13 +89,14 @@ public final class USkillPlugin extends JavaPlugin implements USkillAPI, Listene
         Bukkit.getPluginManager().registerEvents(this, this);
 
         // ─── Item Skill Bridge (UItem soft-depend) ───
-        if (Bukkit.getPluginManager().getPlugin("UItem") != null) {
+        // Dùng isPluginEnabled thay vì getPlugin != null để đảm bảo UItem đã onEnable() thành công
+        if (Bukkit.getPluginManager().isPluginEnabled("UItem")) {
             this.itemSkillListener = new ItemSkillListener(this, this.executor);
             Bukkit.getPluginManager().registerEvents(itemSkillListener, this);
             itemSkillListener.startPeriodicTask();
             getLogger().info("║        ◆ UItem bridge: active");
         } else {
-            getLogger().info("║        ◆ UItem bridge: skipped (UItem not found)");
+            getLogger().info("║        ◆ UItem bridge: skipped (UItem not enabled)");
         }
 
         getLogger().info("╔══════════════════════════════════════════════╗");
