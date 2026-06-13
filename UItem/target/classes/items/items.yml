@@ -5,6 +5,9 @@ items:
     lore:
       - "<gray>A legendary fire blade"
       - "<gray>Burns all enemies"
+      - "<dark_gray>---"
+      - "<red>Right-Click: <white>Launch Fireball <dark_gray>(5s cd)"
+      - "<gold>On Hit: <white>30% chance to ignite"
     enchantments:
       sharpness: 5
       fire_aspect: 2
@@ -14,27 +17,112 @@ items:
     unbreakable: true
     glowing: false
     rarity: EPIC
-    # (passives not yet implemented in this version; use effects or external integrations for skills)
+    skills:
+      fireball:
+        trigger: RIGHT_CLICK
+        cooldown: 5.0
+        cancel-event: true
+        actions:
+          a0:
+            type: SHOOT_PROJECTILE
+            projectile: FIREBALL
+            speed: 1.5
+            damage: 8.0
+          a1:
+            type: PLAY_SOUND
+            sound: ENTITY_BLAZE_SHOOT
+            volume: 1.0
+            pitch: 1.0
+          a2:
+            type: SPAWN_PARTICLE
+            particle: FLAME
+            count: 15
+      ignite_on_hit:
+        trigger: HIT
+        chance: 30.0
+        cooldown: 1.0
+        actions:
+          a0:
+            type: SET_FIRE
+            seconds: 3
 
   ice_ender:
     material: NETHERITE_SWORD
     display-name: "<aqua><bold>Ice Ender"
     lore:
       - "<gray>Eternal frost"
+      - "<dark_gray>---"
+      - "<aqua>Right-Click: <white>Ice Prison on target <dark_gray>(10s cd)"
+      - "<blue>Shift+Right: <white>Blink forward 6 blocks"
     enchantments:
       sharpness: 7
       unbreaking: 5
     custom-model-data: 10002
     rarity: LEGENDARY
-    # passives example removed (feature not implemented)
+    skills:
+      ice_prison:
+        trigger: RIGHT_CLICK
+        cooldown: 10.0
+        cancel-event: true
+        actions:
+          a0:
+            type: ICE_PRISON
+            duration: 3
+          a1:
+            type: PLAY_SOUND
+            sound: BLOCK_GLASS_PLACE
+            volume: 0.8
+            pitch: 0.5
+      blink:
+        trigger: SHIFT_RIGHT_CLICK
+        cooldown: 6.0
+        cancel-event: true
+        actions:
+          a0:
+            type: BLINK
+            distance: 6.0
 
   healing_staff:
     material: BLAZE_ROD
     display-name: "<green><bold>Healing Staff"
     lore:
       - "<gray>Healing staff"
+      - "<dark_gray>---"
+      - "<green>Right-Click: <white>Heal 6 HP <dark_gray>(8s cd)"
+      - "<aqua>Shift+Right: <white>Healing circle around you"
     rarity: RARE
-    # passives example removed (feature not implemented)
+    skills:
+      heal_self:
+        trigger: RIGHT_CLICK
+        cooldown: 8.0
+        cancel-event: true
+        actions:
+          a0:
+            type: HEAL
+            amount: 6.0
+          a1:
+            type: PLAY_SOUND
+            sound: ENTITY_PLAYER_LEVELUP
+            volume: 0.6
+            pitch: 1.4
+          a2:
+            type: SPAWN_PARTICLE
+            particle: HAPPY_VILLAGER
+            count: 20
+      heal_area:
+        trigger: SHIFT_RIGHT_CLICK
+        cooldown: 15.0
+        cancel-event: true
+        actions:
+          a0:
+            type: HEALING_CIRCLE
+            heal: 4.0
+            radius: 5.0
+          a1:
+            type: PLAY_SOUND
+            sound: BLOCK_BEACON_ACTIVATE
+            volume: 0.7
+            pitch: 1.2
 
   venom_dagger:
     material: IRON_SWORD

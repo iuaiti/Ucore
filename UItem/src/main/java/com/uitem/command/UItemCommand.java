@@ -181,7 +181,8 @@ public class UItemCommand implements CommandExecutor, TabCompleter {
         plugin.reloadConfig();
         com.uitem.util.Messages.reload();
         com.uitem.rarity.RarityConfig.reloadFromFile(); // reload rarity config
-        plugin.getStorageManager().saveAllNow(plugin.getItemManager());
+        com.uitem.gui.ItemCatalogGui.invalidateCache();  // reload catalog.yml
+        // Không saveAllNow trước loadAll — tránh overwrite các chỉnh sửa thủ công trong file yml
         plugin.getStorageManager().loadAll(plugin.getItemManager());
         plugin.getRecipeManager().loadRecipes();   // reload recipes từ disk
         plugin.getIntegrationManager().detectIntegrations();
@@ -370,7 +371,7 @@ public class UItemCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(com.uitem.util.TextUtil.parse(
                 "  <gold>/uitem craft <dark_gray>— <gray>Mở bàn chế tạo UItem"));
         sender.sendMessage(com.uitem.util.TextUtil.parse(
-                "  <gold>/crafting <dark_gray>— <gray>Liệt kê tất cả công thức chế tạo"));
+                "  <gold>/crafting <dark_gray>— <gray>Danh mục vật phẩm phân loại 54 slot"));
         sender.sendMessage(com.uitem.util.TextUtil.parse(
                 "  <gold>/crafting craft <dark_gray>— <gray>Mở bàn chế tạo UItem"));
         sender.sendMessage(com.uitem.util.TextUtil.parse(

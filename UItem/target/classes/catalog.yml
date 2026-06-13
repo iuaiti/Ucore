@@ -1,0 +1,37 @@
+# ╔═══════════════════════════════════════════════╗
+# ║   UItem - Danh Mục Vật Phẩm (catalog.yml)   ║
+# ║   Cấu hình giao diện /crafting               ║
+# ╚═══════════════════════════════════════════════╝
+
+# Thứ tự hiển thị các danh mục trong thanh bộ lọc (bottom row)
+# Key mặc định: VU_KHI, GIAP, CONG_CU, NGUYEN_LIEU, VAT_PHAM_TIEU_HAO, VAT_PHAM_DAC_BIET, KHOI_XAY_DUNG, MAY_MOC_TIEN_ICH
+# Có thể thêm key tùy chỉnh từ phần custom-categories
+category-order:
+  - DO_KHOI_DAU
+  - VU_KHI
+  - GIAP
+  - CONG_CU
+  - NGUYEN_LIEU
+  - VAT_PHAM_TIEU_HAO
+  - VAT_PHAM_DAC_BIET
+
+# Danh mục tùy chỉnh — thêm mới hoặc ghi đè tên/icon danh mục mặc định
+# icon: tên Material Bukkit (viết hoa), ví dụ: CHEST, DIAMOND_SWORD
+# emoji: ký tự hiển thị trước tên danh mục
+custom-categories:
+  DO_KHOI_DAU:
+    display-name: "Đồ Khởi Đầu"
+    icon: CHEST
+    emoji: "🎒"
+
+# Sắp xếp vật phẩm trong từng danh mục theo slot cụ thể (tùy chọn)
+# Slot đánh số từ 0-27 (28 slot hiển thị trên mỗi trang)
+# Vật phẩm không được liệt kê sẽ tự điền vào slot còn trống theo alphabet
+# Ví dụ:
+# category-arrangements:
+#   VU_KHI:
+#     "0": fire_blade
+#     "1": ice_ender
+#     "3": thunder_sword
+#   GIAP:
+#     "0": shadow_helmet

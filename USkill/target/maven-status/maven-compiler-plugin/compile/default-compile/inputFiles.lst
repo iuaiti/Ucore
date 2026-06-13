@@ -6,6 +6,7 @@
 /workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/effect/PotionAuraManager.java
 /workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/effect/PotionEffectHelper.java
 /workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/execution/SkillExecutor.java
+/workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/listener/ItemSkillListener.java
 /workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/mana/ManaManager.java
 /workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/tree/PlayerSkillData.java
 /workspaces/Ucore/USkill/src/main/java/com/ultra/uskill/tree/PlayerStats.java

@@ -52,7 +52,7 @@ public class RecipeDetailGui extends AbstractGui {
 
         if (recipe == null || data == null) {
             setItem(22, createItem(Material.BARRIER, "<red>Not found"));
-            setItem(SLOT_BACK, createBackButton(), ev -> new RecipeListGui(plugin, player).open());
+            setItem(SLOT_BACK, createBackButton(), ev -> goBack());
             return;
         }
 
@@ -113,10 +113,7 @@ public class RecipeDetailGui extends AbstractGui {
         result.setAmount(recipe.getResultAmount());
         setItem(SLOT_RESULT, result);
 
-        setItem(SLOT_BACK, createBackButton(), ev -> {
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
-            new RecipeListGui(plugin, player).open();
-        });
+        setItem(SLOT_BACK, createBackButton(), ev -> goBack());
 
         setItem(SLOT_CRAFT, createItem(Material.CRAFTING_TABLE,
                 "<green><bold>Craft</bold>",

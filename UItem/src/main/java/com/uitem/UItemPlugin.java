@@ -86,6 +86,11 @@ public final class UItemPlugin extends JavaPlugin {
 
         saveDefaultConfig();
 
+        // Seed catalog.yml nếu chưa có
+        if (!new File(getDataFolder(), "catalog.yml").exists()) {
+            saveResource("catalog.yml", false);
+        }
+
         this.storageManager = new StorageManager(this);
         this.itemManager = new UItemManager(this);
         this.integrationManager = new IntegrationManager(this);
@@ -93,6 +98,10 @@ public final class UItemPlugin extends JavaPlugin {
         this.guiListener = new GuiListener();
         this.resourcePackManager = new ResourcePackManager(this, this.itemManager);
         this.searchManager = new com.uitem.search.SearchManager();
+
+        // Load RarityConfig và Messages TRƯỚC khi load items — tránh lỗi "unknown rarity" lần đầu cài plugin
+        RarityConfig.load(this);
+        com.uitem.util.Messages.init(this);
 
         storageManager.loadAll(itemManager);
         integrationManager.detectIntegrations();
@@ -104,11 +113,6 @@ public final class UItemPlugin extends JavaPlugin {
         this.skillListener = new com.uitem.legacy.skill.UItemSkillListener(this);
         this.skillActionBar = new com.uitem.legacy.skill.SkillActionBar(this);
         this.skillActionBar.start();
-
-        RarityConfig.load(this);
-
-        // Khởi tạo Messages (language system)
-        com.uitem.util.Messages.init(this);
 
         // Khởi tạo Public API — phải trước khi đăng ký listener
         UItemAPI.init(this);

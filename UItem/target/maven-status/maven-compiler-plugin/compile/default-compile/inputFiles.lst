@@ -24,6 +24,7 @@
 /workspaces/Ucore/UItem/src/main/java/com/uitem/gui/FlagGui.java
 /workspaces/Ucore/UItem/src/main/java/com/uitem/gui/GuiListener.java
 /workspaces/Ucore/UItem/src/main/java/com/uitem/gui/GuiStack.java
+/workspaces/Ucore/UItem/src/main/java/com/uitem/gui/ItemCatalogGui.java
 /workspaces/Ucore/UItem/src/main/java/com/uitem/gui/ItemEditorGui.java
 /workspaces/Ucore/UItem/src/main/java/com/uitem/gui/ItemListGui.java
 /workspaces/Ucore/UItem/src/main/java/com/uitem/gui/ItemTemplateGui.java

@@ -14,6 +14,7 @@ com/ultra/uskill/effect/PotionEffectHelper.class
 com/ultra/uskill/tree/SkillTreeNode.class
 com/ultra/uskill/tree/PlayerStats.class
 com/ultra/uskill/USkillPlugin.class
+com/ultra/uskill/listener/ItemSkillListener.class
 com/ultra/uskill/tree/gui/SkillStatsGui$1.class
 com/ultra/uskill/tree/StatType.class
 com/ultra/uskill/effect/PotionEffectHelper$PotionPreset.class

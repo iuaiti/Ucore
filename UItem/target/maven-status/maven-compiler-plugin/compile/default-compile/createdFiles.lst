@@ -63,6 +63,7 @@ com/uitem/legacy/skill/gui/SkillListGui.class
 com/uitem/UItemManager.class
 com/uitem/UItemData$AttributeData.class
 com/uitem/util/Messages.class
+com/uitem/gui/ItemCatalogGui.class
 com/uitem/storage/StorageManager$FileLoadResult.class
 com/uitem/legacy/skill/UItemSkillListener.class
 com/uitem/gui/ConfirmDeleteGui.class

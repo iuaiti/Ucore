@@ -6,6 +6,7 @@ folia-supported: true
 description: Skill engine plugin for Ultra network
 author: iuaititi
 depend: [UCore]
+softdepend: [UItem]
 commands:
   skilltree:
     description: "Open the skill tree GUI"

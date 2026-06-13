@@ -2,7 +2,7 @@ package com.uitem.command;
 
 import com.uitem.UItemPlugin;
 import com.uitem.gui.CraftingGui;
-import com.uitem.gui.RecipeListGui;
+import com.uitem.gui.ItemCatalogGui;
 import com.uitem.util.Messages;
 import com.uitem.util.TextUtil;
 import org.bukkit.command.Command;
@@ -32,9 +32,11 @@ public class CraftingCommand implements CommandExecutor {
         }
 
         if (args.length > 0 && args[0].equalsIgnoreCase("craft")) {
+            // /crafting craft → mở bàn chế tạo trực tiếp
             new CraftingGui(plugin, player).open();
         } else {
-            new RecipeListGui(plugin, player).open();
+            // /crafting → mở danh mục vật phẩm 54 slot phân loại
+            new ItemCatalogGui(plugin, player).open();
         }
         return true;
     }

@@ -5,6 +5,7 @@ import com.ultra.uskill.api.USkillAPI;
 import com.ultra.uskill.api.USkillProvider;
 import com.ultra.uskill.cooldown.CooldownManager;
 import com.ultra.uskill.execution.SkillExecutor;
+import com.ultra.uskill.listener.ItemSkillListener;
 import com.ultra.uskill.tree.SkillTreeManager;
 import com.ultra.uskill.command.SkillTreeCommand;
 import com.ultra.uskill.mana.ManaManager;
@@ -31,6 +32,7 @@ public final class USkillPlugin extends JavaPlugin implements USkillAPI, Listene
     private SkillExecutor executor;
     private SkillTreeManager skillTreeManager;
     private ManaManager manaManager;
+    private ItemSkillListener itemSkillListener;
 
     @Override
     public void onEnable() {
@@ -86,6 +88,16 @@ public final class USkillPlugin extends JavaPlugin implements USkillAPI, Listene
         // Register join/quit events for skill tree stats
         Bukkit.getPluginManager().registerEvents(this, this);
 
+        // ─── Item Skill Bridge (UItem soft-depend) ───
+        if (Bukkit.getPluginManager().getPlugin("UItem") != null) {
+            this.itemSkillListener = new ItemSkillListener(this, this.executor);
+            Bukkit.getPluginManager().registerEvents(itemSkillListener, this);
+            itemSkillListener.startPeriodicTask();
+            getLogger().info("║        ◆ UItem bridge: active");
+        } else {
+            getLogger().info("║        ◆ UItem bridge: skipped (UItem not found)");
+        }
+
         getLogger().info("╔══════════════════════════════════════════════╗");
         getLogger().info("║        ⚡ USkill v" + getPluginMeta().getVersion() + " — Skill Engine");
         getLogger().info("║        ◆ UCore bridge: active");
@@ -97,6 +109,7 @@ public final class USkillPlugin extends JavaPlugin implements USkillAPI, Listene
     public void onDisable() {
         UCoreAPI.getPlaceholderManager().unregister("uskill_version");
         if (manaManager != null) manaManager.stop();
+        if (itemSkillListener != null) itemSkillListener.stopPeriodicTask();
         if (skillTreeManager != null) {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 skillTreeManager.onPlayerQuit(p);
@@ -112,6 +125,10 @@ public final class USkillPlugin extends JavaPlugin implements USkillAPI, Listene
 
     public SkillTreeManager getSkillTreeManager() {
         return skillTreeManager;
+    }
+
+    public ItemSkillListener getItemSkillListener() {
+        return itemSkillListener;
     }
 
     @EventHandler
