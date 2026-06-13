@@ -51,6 +51,12 @@ resourcepack:
   auto-host: true
   server-port: 9732
   kick-on-fail: true
+
+  # Khi Oraxen hoặc ItemsAdder được cài, tự động TẮT serve + apply của UItem
+  # (tránh conflict 2 resource pack cùng lúc). Pack vẫn được GENERATE vào thư mục
+  # để admin copy sang Oraxen/ItemsAdder nếu cần.
+  # Đặt false để tắt tính năng này và kiểm soát thủ công.
+  auto-disable-when-integration: true
   kick-message: "Không tải được resource packs, vui lòng vào lại\nUnable to load resource packs, please rejoin"
   url: ""
   source-texture-folder: "textures"

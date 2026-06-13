@@ -77,6 +77,12 @@ public class ResourcePackManager {
     private volatile File lastZipFile;
     private volatile byte[] lastPackHash;
 
+    /**
+     * Khi true: Oraxen/ItemsAdder đang active → tắt serve + apply, giữ generate.
+     * Set bởi UItemPlugin sau khi detectIntegrations().
+     */
+    private volatile boolean integrationMode = false;
+
     public ResourcePackManager(UItemPlugin plugin, UItemManager itemManager) {
         this.plugin = plugin;
         this.itemManager = itemManager;
@@ -98,6 +104,19 @@ public class ResourcePackManager {
         readConfigFields(config);
         loadCmdConfig();
         plugin.getLogger().info("[UItem] ResourcePackManager reloaded config.");
+    }
+
+    /**
+     * Bật/tắt integration mode (Oraxen/ItemsAdder active).
+     * Khi true: serve và apply bị skip, generate vẫn chạy.
+     */
+    public void setIntegrationMode(boolean active) {
+        this.integrationMode = active;
+    }
+
+    /** Trả về true khi đang nhường resource pack cho Oraxen/ItemsAdder. */
+    public boolean isIntegrationMode() {
+        return integrationMode;
     }
 
     private void readConfigFields(org.bukkit.configuration.file.FileConfiguration config) {

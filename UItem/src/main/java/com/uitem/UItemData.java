@@ -52,6 +52,23 @@ public class UItemData {
     private String requiredSkillNode;
     private int requiredSkillLevel = 1;
 
+    // ── Soulbound & Protection ────────────────────────────────────────────────
+    private boolean soulbound = false;     // gắn với player: không drop, không death-drop
+    private boolean noDrop = false;        // không thể throw/drop thủ công
+    private boolean noDeathDrop = false;   // không drop khi chết
+    private boolean noMove = false;        // không thể chuyển sang inventory khác
+
+    // ── Item Commands ─────────────────────────────────────────────────────────
+    private List<String> onRightClickCommands = new ArrayList<>();
+    private List<String> onLeftClickCommands  = new ArrayList<>();
+
+    // ── World Restrictions ────────────────────────────────────────────────────
+    private List<String> allowedWorlds = new ArrayList<>();
+
+    // ── Stat Tracking (hiển thị {kills}/{uses} trong lore) ───────────────────
+    private boolean trackKills = false;
+    private boolean trackUses  = false;
+
     public UItemData(String id) {
         this.id = id;
         this.material = Material.STONE;
@@ -232,6 +249,37 @@ public class UItemData {
     public void setRequiredSkillLevel(int level) { this.requiredSkillLevel = Math.max(1, level); }
     public boolean hasSkillRequirement() { return requiredSkillNode != null; }
 
+    // ── Soulbound & Protection getters/setters ───────────────────────────────
+    public boolean isSoulbound() { return soulbound; }
+    public void setSoulbound(boolean v) { this.soulbound = v; }
+
+    public boolean isNoDrop() { return noDrop; }
+    public void setNoDrop(boolean v) { this.noDrop = v; }
+
+    public boolean isNoDeathDrop() { return noDeathDrop; }
+    public void setNoDeathDrop(boolean v) { this.noDeathDrop = v; }
+
+    public boolean isNoMove() { return noMove; }
+    public void setNoMove(boolean v) { this.noMove = v; }
+
+    // ── Item Commands getters/setters ────────────────────────────────────────
+    public List<String> getOnRightClickCommands() { return onRightClickCommands; }
+    public void setOnRightClickCommands(List<String> v) { this.onRightClickCommands = v != null ? v : new ArrayList<>(); }
+
+    public List<String> getOnLeftClickCommands() { return onLeftClickCommands; }
+    public void setOnLeftClickCommands(List<String> v) { this.onLeftClickCommands = v != null ? v : new ArrayList<>(); }
+
+    // ── World Restrictions getters/setters ───────────────────────────────────
+    public List<String> getAllowedWorlds() { return allowedWorlds; }
+    public void setAllowedWorlds(List<String> v) { this.allowedWorlds = v != null ? v : new ArrayList<>(); }
+
+    // ── Stat Tracking getters/setters ────────────────────────────────────────
+    public boolean isTrackKills() { return trackKills; }
+    public void setTrackKills(boolean v) { this.trackKills = v; }
+
+    public boolean isTrackUses() { return trackUses; }
+    public void setTrackUses(boolean v) { this.trackUses = v; }
+
     /**
      * General effect that can be attached to a custom item.
      * Supports reflect damage, extra damage on various triggers.
@@ -303,6 +351,15 @@ public class UItemData {
         clone.categories = new HashSet<>(this.categories);
         clone.requiredSkillNode = this.requiredSkillNode;
         clone.requiredSkillLevel = this.requiredSkillLevel;
+        clone.soulbound = this.soulbound;
+        clone.noDrop = this.noDrop;
+        clone.noDeathDrop = this.noDeathDrop;
+        clone.noMove = this.noMove;
+        clone.onRightClickCommands = new ArrayList<>(this.onRightClickCommands);
+        clone.onLeftClickCommands  = new ArrayList<>(this.onLeftClickCommands);
+        clone.allowedWorlds = new ArrayList<>(this.allowedWorlds);
+        clone.trackKills = this.trackKills;
+        clone.trackUses  = this.trackUses;
         return clone;
     }
 

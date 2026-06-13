@@ -105,6 +105,7 @@ public final class UItemPlugin extends JavaPlugin {
 
         storageManager.loadAll(itemManager);
         integrationManager.detectIntegrations();
+        applyResourcePackIntegrationMode();   // tắt serve/apply nếu Oraxen/ItemsAdder detected
         resourcePackManager.syncCmdsToLiveItems();
 
         this.recipeManager = new RecipeManager(this, this.itemManager);
@@ -141,6 +142,11 @@ public final class UItemPlugin extends JavaPlugin {
         getLogger().info("╠══════════════════════════════════════════════╣");
         getLogger().info("║  ■ Loaded: " + itemManager.getAllItems().size() + " custom items");
         getLogger().info("║  ■ Integrations: " + integrationManager.getStatus());
+        if (resourcePackManager.isIntegrationMode()) {
+            getLogger().info("║  ■ Resource Pack: 🔗 Delegated to Oraxen/ItemsAdder");
+        } else {
+            getLogger().info("║  ■ Resource Pack: ⚙ Managed by UItem");
+        }
         getLogger().info("║  ■ Scheduler: " + (SchedulerUtil.isFolia() ? "🌐 Folia (Region)" : "☕ Paper/Spigot"));
         getLogger().info("╚══════════════════════════════════════════════╝");
 
@@ -150,6 +156,11 @@ public final class UItemPlugin extends JavaPlugin {
                 try {
                     resourcePackManager.exportZip();
                     getLogger().info("[UItem] Resource pack exported successfully.");
+                    // Skip apply khi Oraxen/ItemsAdder đang quản lý resource pack
+                    if (resourcePackManager.isIntegrationMode()) {
+                        getLogger().info("[UItem] Integration mode active — skipping auto-apply (Oraxen/ItemsAdder handles resource packs).");
+                        return;
+                    }
                     if (getConfig().getBoolean("resourcepack.auto-apply", true) && packServer != null && packServer.isRunning()) {
                         String url = packServer.getPackUrl();
                         byte[] hash = resourcePackManager.getLastPackHash();
@@ -228,6 +239,11 @@ public final class UItemPlugin extends JavaPlugin {
             getLogger().info("[UItem] Resource pack server disabled in config.");
             return;
         }
+        // Không start pack server khi Oraxen/ItemsAdder đang quản lý resource pack
+        if (resourcePackManager.isIntegrationMode()) {
+            getLogger().info("[UItem] Resource pack server skipped — Oraxen/ItemsAdder is handling resource packs.");
+            return;
+        }
         int port = getConfig().getInt("resourcepack.server-port", 9732);
         this.packServer = new ResourcePackServer(this);
         try {
@@ -247,6 +263,8 @@ public final class UItemPlugin extends JavaPlugin {
         resourcePackJoinListener = new Listener() {
             @EventHandler
             public void onJoin(PlayerJoinEvent event) {
+                // Khi Oraxen/ItemsAdder đang active, không apply pack của UItem
+                if (resourcePackManager.isIntegrationMode()) return;
                 if (!getConfig().getBoolean("resourcepack.auto-apply", true)) {
                     return;
                 }
@@ -289,6 +307,8 @@ public final class UItemPlugin extends JavaPlugin {
 
             @EventHandler
             public void onResourcePackStatus(PlayerResourcePackStatusEvent event) {
+                // Khi integration mode: không kick vì Oraxen/ItemsAdder tự xử lý
+                if (resourcePackManager.isIntegrationMode()) return;
                 if (!getConfig().getBoolean("resourcepack.auto-apply", true)) {
                     return;
                 }
@@ -324,6 +344,7 @@ public final class UItemPlugin extends JavaPlugin {
                         || name.equals("Score") || name.equals("ExecutableItems")) {
                     getLogger().info("[UItem] Detected " + name + " enabling — re-checking integrations...");
                     integrationManager.detectIntegrations();
+                    applyResourcePackIntegrationMode(); // re-evaluate khi plugin load muộn
                     getLogger().info("[UItem] Integrations: " + integrationManager.getStatus());
                 }
             }
@@ -355,8 +376,25 @@ public final class UItemPlugin extends JavaPlugin {
     }
 
     public ResourcePackManager getResourcePackManager() {
-    return resourcePackManager;
-}
+        return resourcePackManager;
+    }
+
+    /**
+     * Tính toán và áp dụng integration mode cho ResourcePackManager.
+     * Gọi sau mỗi lần detectIntegrations().
+     */
+    public void applyResourcePackIntegrationMode() {
+        boolean autoDisable = getConfig().getBoolean("resourcepack.auto-disable-when-integration", true);
+        boolean hasPackIntegration = integrationManager.hasOraxen() || integrationManager.hasItemsAdder();
+        boolean shouldDelegate = autoDisable && hasPackIntegration;
+        resourcePackManager.setIntegrationMode(shouldDelegate);
+        if (shouldDelegate) {
+            String which = integrationManager.hasOraxen() ? "Oraxen" : "ItemsAdder";
+            if (integrationManager.hasOraxen() && integrationManager.hasItemsAdder()) which = "Oraxen + ItemsAdder";
+            getLogger().info("[UItem] Resource pack delegation active (" + which
+                    + ") — serve/apply disabled. Pack still generated for reference.");
+        }
+    }
 
     public com.uitem.search.SearchManager getSearchManager() {
         return searchManager;

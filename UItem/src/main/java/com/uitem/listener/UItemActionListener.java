@@ -6,6 +6,7 @@ import com.uitem.api.UItemAPI;
 import com.uitem.api.events.UItemEquipEvent;
 import com.uitem.api.events.UItemInteractEvent;
 import com.uitem.api.events.UItemPickupEvent;
+import com.uitem.util.TextUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
@@ -15,17 +16,23 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -69,6 +76,44 @@ public class UItemActionListener implements Listener {
         Action action = event.getAction();
         if (action == Action.PHYSICAL) return; // pressure plate / trampling — bỏ qua
 
+        // ── World restrictions ──────────────────────────────────────────
+        List<String> allowedWorlds = data.getAllowedWorlds();
+        if (allowedWorlds != null && !allowedWorlds.isEmpty()) {
+            String worldName = player.getWorld().getName();
+            if (!allowedWorlds.contains(worldName)) {
+                event.setCancelled(true);
+                player.sendMessage(TextUtil.error(
+                        "Item này không thể dùng ở thế giới <white>" + worldName + "<red>!"));
+                return;
+            }
+        }
+
+        // ── Item commands ────────────────────────────────────────────────
+        List<String> cmds = (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK)
+                ? data.getOnRightClickCommands() : data.getOnLeftClickCommands();
+        if (cmds != null && !cmds.isEmpty()) {
+            for (String cmd : cmds) {
+                String processed = cmd
+                        .replace("{player}", player.getName())
+                        .replace("{world}",  player.getWorld().getName())
+                        .replace("{x}", String.valueOf((int) player.getLocation().getX()))
+                        .replace("{y}", String.valueOf((int) player.getLocation().getY()))
+                        .replace("{z}", String.valueOf((int) player.getLocation().getZ()));
+                if (processed.startsWith("console:")) {
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), processed.substring(8).trim());
+                } else {
+                    String stripped = processed.startsWith("/") ? processed.substring(1) : processed;
+                    Bukkit.dispatchCommand(player, stripped);
+                }
+            }
+        }
+
+        // ── Use count tracking ───────────────────────────────────────────
+        if (data.isTrackUses()) {
+            plugin.getItemManager().incrementUseCount(usedItem);
+        }
+
+        // ── Fire UItem interact event ────────────────────────────────────
         UItemInteractEvent uiEvent = new UItemInteractEvent(
                 data,
                 player,
@@ -84,10 +129,6 @@ public class UItemActionListener implements Listener {
             event.setCancelled(true);
         }
     }
-
-    // ================================================================
-    // Pickup: nhặt UItem từ dưới đất
-    // ================================================================
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPickup(@NotNull EntityPickupItemEvent event) {
@@ -393,5 +434,94 @@ public class UItemActionListener implements Listener {
                inv.getChestplate() != null && !inv.getChestplate().getType().isAir() &&
                inv.getLeggings() != null && !inv.getLeggings().getType().isAir() &&
                inv.getBoots() != null && !inv.getBoots().getType().isAir();
+    }
+
+    // ============================================================
+    // Soulbound / noDrop — PlayerDropItemEvent
+    // ============================================================
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onItemDrop(PlayerDropItemEvent event) {
+        UItemData data = getUItemData(event.getItemDrop().getItemStack());
+        if (data == null) return;
+        if (data.isSoulbound() || data.isNoDrop()) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(TextUtil.error("Bạn không thể thả item này!"));
+        }
+    }
+
+    // ============================================================
+    // Soulbound / noDeathDrop — giữ item khi chết
+    // ============================================================
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    public void onDeathDrops(PlayerDeathEvent event) {
+        List<ItemStack> toRemove = new ArrayList<>();
+        List<ItemStack> toKeep   = event.getItemsToKeep();
+        for (ItemStack drop : event.getDrops()) {
+            UItemData data = getUItemData(drop);
+            if (data == null) continue;
+            if (data.isSoulbound() || data.isNoDeathDrop()) {
+                toRemove.add(drop);
+                toKeep.add(drop.clone());
+            }
+        }
+        event.getDrops().removeAll(toRemove);
+    }
+
+    // ============================================================
+    // noMove — block shift-click ra inventory khác
+    // ============================================================
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onNoMoveInventoryClick(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+
+        // Shift-click chuyển item ra khỏi player inventory
+        if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+            UItemData data = getUItemData(event.getCurrentItem());
+            if (data != null && data.isNoMove()) {
+                event.setCancelled(true);
+                player.sendMessage(TextUtil.error("Item này không thể chuyển đến kho đồ khác!"));
+                return;
+            }
+        }
+
+        // Đặt cursor (noMove item) vào inventory không phải của player
+        if (event.getClickedInventory() != null
+                && event.getClickedInventory() != player.getInventory()) {
+            UItemData data = getUItemData(event.getCursor());
+            if (data != null && data.isNoMove()) {
+                event.setCancelled(true);
+                player.sendMessage(TextUtil.error("Item này không thể chuyển đến kho đồ khác!"));
+            }
+        }
+    }
+
+    // ============================================================
+    // noMove — block hopper / automation
+    // ============================================================
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onHopperMove(InventoryMoveItemEvent event) {
+        UItemData data = getUItemData(event.getItem());
+        if (data != null && data.isNoMove()) {
+            event.setCancelled(true);
+        }
+    }
+
+    // ============================================================
+    // Stat Tracking — kill count (player kills entity với UItem)
+    // ============================================================
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEntityKill(EntityDeathEvent event) {
+        Player killer = event.getEntity().getKiller();
+        if (killer == null) return;
+        ItemStack weapon = killer.getInventory().getItemInMainHand();
+        if (weapon == null || weapon.getType().isAir()) return;
+        UItemData data = getUItemData(weapon);
+        if (data == null || !data.isTrackKills()) return;
+        plugin.getItemManager().incrementKillCount(weapon);
     }
 }

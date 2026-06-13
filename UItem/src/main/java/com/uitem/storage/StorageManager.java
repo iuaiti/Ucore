@@ -419,6 +419,26 @@ public class StorageManager {
             data.setRequiredSkillLevel(s.getInt("required-skill-level", 1));
         }
 
+        // ── soulbound & protection ────────────────────────────────────────────
+        data.setSoulbound(s.getBoolean("soulbound", false));
+        data.setNoDrop(s.getBoolean("no-drop", false));
+        data.setNoDeathDrop(s.getBoolean("no-death-drop", false));
+        data.setNoMove(s.getBoolean("no-move", false));
+
+        // ── item commands ─────────────────────────────────────────────────────
+        List<String> rightCmds = s.getStringList("on-right-click");
+        if (!rightCmds.isEmpty()) data.setOnRightClickCommands(rightCmds);
+        List<String> leftCmds = s.getStringList("on-left-click");
+        if (!leftCmds.isEmpty()) data.setOnLeftClickCommands(leftCmds);
+
+        // ── world restrictions ────────────────────────────────────────────────
+        List<String> worlds = s.getStringList("allowed-worlds");
+        if (!worlds.isEmpty()) data.setAllowedWorlds(worlds);
+
+        // ── stat tracking ─────────────────────────────────────────────────────
+        data.setTrackKills(s.getBoolean("track-kills", false));
+        data.setTrackUses(s.getBoolean("track-uses", false));
+
         // skills: stored raw — parsed by USkillAPI when needed
         ConfigurationSection skillsSec = s.getConfigurationSection("skills");
         if (skillsSec != null) {
@@ -599,6 +619,23 @@ public class StorageManager {
                 if (e.isApplyToTarget()) cfg.set(ep + ".apply-to-target", true);
             }
         }
+
+        // Soulbound & protection (chỉ lưu khi khác default để file gọn)
+        if (d.isSoulbound()) cfg.set(id + ".soulbound", true);
+        if (d.isNoDrop()) cfg.set(id + ".no-drop", true);
+        if (d.isNoDeathDrop()) cfg.set(id + ".no-death-drop", true);
+        if (d.isNoMove()) cfg.set(id + ".no-move", true);
+
+        // Item commands
+        if (!d.getOnRightClickCommands().isEmpty()) cfg.set(id + ".on-right-click", d.getOnRightClickCommands());
+        if (!d.getOnLeftClickCommands().isEmpty())  cfg.set(id + ".on-left-click",  d.getOnLeftClickCommands());
+
+        // World restrictions
+        if (!d.getAllowedWorlds().isEmpty()) cfg.set(id + ".allowed-worlds", d.getAllowedWorlds());
+
+        // Stat tracking
+        if (d.isTrackKills()) cfg.set(id + ".track-kills", true);
+        if (d.isTrackUses())  cfg.set(id + ".track-uses",  true);
 
         synchronized (fileLock) {
             try {

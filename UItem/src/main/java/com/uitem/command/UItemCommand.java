@@ -29,7 +29,8 @@ import java.util.Map;
 public class UItemCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> ROOT_SUBCOMMANDS = List.of(
-            "give", "editor", "reload", "list", "resourcepack", "rp", "craft", "help", "check"
+            "give", "editor", "reload", "list", "resourcepack", "rp", "craft", "help", "check",
+            "bulkgive", "export"
     );
 
     private static final List<String> RP_ACTIONS = List.of(
@@ -59,6 +60,8 @@ public class UItemCommand implements CommandExecutor, TabCompleter {
             case "resourcepack", "rp" -> handleResourcePack(sender, args);
             case "craft", "crafting" -> handleCraft(sender);
             case "check" -> handleCheck(sender);
+            case "bulkgive", "bulk" -> handleBulkGive(sender);
+            case "export" -> handleExport(sender, args);
             case "help" -> sendHelp(sender);
             default -> sender.sendMessage(TextUtil.error("Lệnh không hợp lệ. Dùng /" + label + " help"));
         }
@@ -180,12 +183,13 @@ public class UItemCommand implements CommandExecutor, TabCompleter {
 
         plugin.reloadConfig();
         com.uitem.util.Messages.reload();
-        com.uitem.rarity.RarityConfig.reloadFromFile(); // reload rarity config
-        com.uitem.gui.ItemCatalogGui.invalidateCache();  // reload catalog.yml
+        com.uitem.rarity.RarityConfig.reloadFromFile();
+        com.uitem.gui.ItemCatalogGui.invalidateCache();
         // Không saveAllNow trước loadAll — tránh overwrite các chỉnh sửa thủ công trong file yml
         plugin.getStorageManager().loadAll(plugin.getItemManager());
-        plugin.getRecipeManager().loadRecipes();   // reload recipes từ disk
+        plugin.getRecipeManager().loadRecipes();
         plugin.getIntegrationManager().detectIntegrations();
+        plugin.applyResourcePackIntegrationMode(); // re-check Oraxen/ItemsAdder sau reload
 
         // Bug E fix: reload ResourcePackManager config fields
         plugin.getResourcePackManager().reloadFromConfig(plugin.getConfig());
@@ -353,6 +357,62 @@ public class UItemCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    private void handleBulkGive(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(TextUtil.error(Messages.playersOnly()));
+            return;
+        }
+        if (!player.hasPermission("uitem.bulkgive")) {
+            sender.sendMessage(TextUtil.error(Messages.noPermission()));
+            return;
+        }
+        new com.uitem.gui.BulkGiveGui(plugin, player).open();
+    }
+
+    private void handleExport(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("uitem.editor")) {
+            sender.sendMessage(TextUtil.error(Messages.noPermission()));
+            return;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(TextUtil.error("Cách dùng: /uitem export <id>"));
+            return;
+        }
+        String itemId = args[1].toLowerCase(Locale.ROOT);
+        UItemData data = plugin.getItemManager().getItem(itemId);
+        if (data == null) {
+            sender.sendMessage(TextUtil.error("Item '" + itemId + "' không tồn tại!"));
+            return;
+        }
+        plugin.getStorageManager().saveItemIndividual(data);
+        java.io.File saved = new java.io.File(plugin.getDataFolder(), "items/" + itemId + ".yml");
+        if (!saved.exists()) {
+            sender.sendMessage(TextUtil.error("Không tìm thấy file export! Hãy thử /uitem reload trước."));
+            return;
+        }
+        try {
+            java.util.List<String> lines = java.nio.file.Files.readAllLines(saved.toPath());
+            sender.sendMessage(TextUtil.prefixed("<gold>Export: <white>" + itemId + ".yml <dark_gray>(" + lines.size() + " dòng)"));
+            sender.sendMessage(TextUtil.prefixed("<gray>Path: <white>" + saved.getAbsolutePath()));
+            int shown = 0;
+            for (String line : lines) {
+                if (shown >= 30) {
+                    sender.sendMessage(TextUtil.prefixed("<dark_gray>... (+" + (lines.size() - 30) + " dòng nữa, xem file trực tiếp)"));
+                    break;
+                }
+                net.kyori.adventure.text.Component lineComp =
+                        TextUtil.parse("<dark_gray>" + line)
+                                .clickEvent(net.kyori.adventure.text.event.ClickEvent.copyToClipboard(line))
+                                .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(
+                                        TextUtil.parse("<gray>Click để copy")));
+                sender.sendMessage(lineComp);
+                shown++;
+            }
+        } catch (Exception e) {
+            sender.sendMessage(TextUtil.error("Lỗi đọc file export: " + e.getMessage()));
+        }
+    }
+
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(Component.text(""));
         sender.sendMessage(com.uitem.util.TextUtil.parse(
@@ -374,6 +434,10 @@ public class UItemCommand implements CommandExecutor, TabCompleter {
                 "  <gold>/crafting <dark_gray>— <gray>Danh mục vật phẩm phân loại 54 slot"));
         sender.sendMessage(com.uitem.util.TextUtil.parse(
                 "  <gold>/crafting craft <dark_gray>— <gray>Mở bàn chế tạo UItem"));
+        sender.sendMessage(com.uitem.util.TextUtil.parse(
+                "  <gold>/uitem bulkgive <dark_gray>— <gray>Give nhiều item cùng lúc qua GUI"));
+        sender.sendMessage(com.uitem.util.TextUtil.parse(
+                "  <gold>/uitem export <id> <dark_gray>— <gray>Export config item ra chat (clickable copy)"));
         sender.sendMessage(com.uitem.util.TextUtil.parse(
                 "  <gold>/uitem reload <dark_gray>— <gray>Reload plugin"));
         sender.sendMessage(com.uitem.util.TextUtil.parse(

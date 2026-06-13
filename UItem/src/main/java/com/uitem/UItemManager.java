@@ -31,11 +31,15 @@ public class UItemManager {
     private final UItemPlugin plugin;
     private final Map<String, UItemData> items;
     private final NamespacedKey uitemKey;
+    private final NamespacedKey killCountKey;
+    private final NamespacedKey useCountKey;
 
     public UItemManager(UItemPlugin plugin) {
         this.plugin = plugin;
         this.items = new ConcurrentHashMap<>();
-        this.uitemKey = new NamespacedKey(plugin, "uitem_id");
+        this.uitemKey    = new NamespacedKey(plugin, "uitem_id");
+        this.killCountKey = new NamespacedKey(plugin, "kill_count");
+        this.useCountKey  = new NamespacedKey(plugin, "use_count");
     }
 
     /**
@@ -43,6 +47,66 @@ public class UItemManager {
      */
     public NamespacedKey getUItemKey() {
         return uitemKey;
+    }
+
+    public NamespacedKey getKillCountKey() { return killCountKey; }
+    public NamespacedKey getUseCountKey()  { return useCountKey; }
+
+    /** Lấy UItemData từ ItemStack thông qua PDC (không cần UItemAPI). */
+    public UItemData getUItemDataFromItem(ItemStack item) {
+        if (item == null || item.getType().isAir()) return null;
+        ItemMeta m = item.getItemMeta();
+        if (m == null) return null;
+        String id = m.getPersistentDataContainer().get(uitemKey, PersistentDataType.STRING);
+        return id != null ? getItem(id) : null;
+    }
+
+    /** Tăng kill count và cập nhật lore nếu track-kills bật. */
+    public void incrementKillCount(ItemStack item) {
+        if (item == null || item.getType().isAir()) return;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
+        var pdc = meta.getPersistentDataContainer();
+        int kills = pdc.getOrDefault(killCountKey, PersistentDataType.INTEGER, 0) + 1;
+        pdc.set(killCountKey, PersistentDataType.INTEGER, kills);
+        UItemData data = getUItemDataFromItem(item);
+        if (data != null && data.isTrackKills()) {
+            int uses = pdc.getOrDefault(useCountKey, PersistentDataType.INTEGER, 0);
+            rebuildStatLore(meta, data, kills, uses);
+        }
+        item.setItemMeta(meta);
+    }
+
+    /** Tăng use count và cập nhật lore nếu track-uses bật. */
+    public void incrementUseCount(ItemStack item) {
+        if (item == null || item.getType().isAir()) return;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
+        var pdc = meta.getPersistentDataContainer();
+        int uses = pdc.getOrDefault(useCountKey, PersistentDataType.INTEGER, 0) + 1;
+        pdc.set(useCountKey, PersistentDataType.INTEGER, uses);
+        UItemData data = getUItemDataFromItem(item);
+        if (data != null && data.isTrackUses()) {
+            int kills = pdc.getOrDefault(killCountKey, PersistentDataType.INTEGER, 0);
+            rebuildStatLore(meta, data, kills, uses);
+        }
+        item.setItemMeta(meta);
+    }
+
+    private void rebuildStatLore(ItemMeta meta, UItemData data, int kills, int uses) {
+        if (data.getLore() == null) return;
+        List<Component> lore = new ArrayList<>();
+        for (String line : data.getLore()) {
+            String p = line.replace("{kills}", String.valueOf(kills))
+                          .replace("{uses}", String.valueOf(uses));
+            lore.add(safeDeserialize(p, data.getId()));
+        }
+        if (data.getRarity() != null) {
+            for (String line : com.uitem.rarity.RarityConfig.getRarityLore(data.getRarity())) {
+                lore.add(safeDeserialize(line, data.getId()));
+            }
+        }
+        meta.lore(lore);
     }
 
     /**
@@ -148,7 +212,9 @@ public class UItemManager {
         List<Component> loreComponents = new ArrayList<>();
         if (data.getLore() != null) {
             for (String line : data.getLore()) {
-                loreComponents.add(safeDeserialize(line, data.getId()));
+                // {kills} và {uses} hiển thị 0 khi item mới được build (stats lưu trong PDC)
+                String processed = line.replace("{kills}", "0").replace("{uses}", "0");
+                loreComponents.add(safeDeserialize(processed, data.getId()));
             }
         }
         if (rarity != null) {
@@ -272,6 +338,7 @@ public class UItemManager {
             if (data.getLore() != null) {
                 for (String line : data.getLore()) {
                     String parsed = pm.apply(line, ctx);
+                    parsed = parsed.replace("{kills}", "0").replace("{uses}", "0");
                     newLore.add(safeDeserialize(parsed, data.getId()));
                 }
             }

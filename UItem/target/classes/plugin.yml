@@ -6,7 +6,7 @@ folia-supported: true
 description: Ultimate Item - Custom item plugin for Minecraft
 author: iuaititi
 depend: [UCore]
-softdepend: [Oraxen, ItemsAdder, SCore, ExecutableItems, USkill]
+softdepend: [Oraxen, ItemsAdder, SCore, ExecutableItems, USkill, PlaceholderAPI]
 license: Delta Softwares License (DSL) - All Rights Reserved - No Redistribution
 commands:
   uitem:
