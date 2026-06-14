@@ -1,0 +1,5 @@
+# UCrate Configuration - Crate Definitions
+# Each crate is defined under "crates.<id>"
+# Use /ucrate editor in-game to manage crates visually
+
+crates: {}

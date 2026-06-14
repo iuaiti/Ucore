@@ -134,17 +134,24 @@ public class ManaManager {
         int filled = Math.max(0, Math.min(barLength, (int) Math.round((current / max) * barLength)));
         int empty = barLength - filled;
 
-        String fillChar = plugin.getConfig().getString("mana.fill-char", "█");
-        String emptyChar = plugin.getConfig().getString("mana.empty-char", "░");
-        String manaColor = plugin.getConfig().getString("mana.color", "<aqua>");
+        String fillChar  = plugin.getConfig().getString("mana.fill-char",   "█");
+        String emptyChar = plugin.getConfig().getString("mana.empty-char",  "░");
+        String manaColor  = plugin.getConfig().getString("mana.color",       "<aqua>");
         String emptyColor = plugin.getConfig().getString("mana.empty-color", "<dark_gray>");
 
-        String bar = manaColor + fillChar.repeat(filled) + emptyColor + emptyChar.repeat(empty);
-
+        String bar  = manaColor + fillChar.repeat(filled) + emptyColor + emptyChar.repeat(empty);
         int percent = (int) ((current / max) * 100);
-        String manaText = "<dark_aqua>✦ " + bar + " <gray>" + (int) current + "/" + (int) max + " <dark_gray>(" + percent + "%)";
 
-        var component = com.ultra.ucore.util.TextUtil.parse(manaText);
+        // Neo góc trái bằng cách đặt text trước rồi padding spaces rất dài ở sau.
+        // sendActionBar() căn giữa chuỗi, nên nếu ta thêm trailing spaces dài hơn
+        // nội dung thực, trung tâm của chuỗi dịch về bên phải → text thực xuất
+        // hiện gần góc trái màn hình. Số spaces tối ưu khoảng 60-80 ký tự.
+        String content = "<dark_aqua>✦ Mana " + bar + " <gray>" + (int) current + "/" + (int) max;
+        // Trailing padding đẩy nội dung về bên trái (config: mana.hud-padding)
+        int padding = plugin.getConfig().getInt("mana.hud-padding", 60);
+        String padded = content + " ".repeat(Math.max(0, padding));
+
+        var component = com.ultra.ucore.util.TextUtil.parse(padded);
         player.sendActionBar(component);
     }
 
@@ -157,13 +164,16 @@ public class ManaManager {
 
     /**
      * Hiển thị thông báo tạm thời thay cho mana HUD (dùng cho mob XP, skill feedback...).
+     * Leading spaces đẩy nội dung sang phải — đối xứng với mana HUD ở góc trái.
      * @param player  người nhận
      * @param message MiniMessage string
      * @param ticks   số tick hiển thị (20 ticks = 1 giây)
      */
     public void showNotification(Player player, String message, int ticks) {
+        int padding = plugin.getConfig().getInt("mana.notification-padding", 60);
+        String padded = " ".repeat(Math.max(0, padding)) + message;
         pendingNotifications.put(player.getUniqueId(),
-                new PendingNotification(com.ultra.ucore.util.TextUtil.parse(message), ticks));
+                new PendingNotification(com.ultra.ucore.util.TextUtil.parse(padded), ticks));
     }
 
     private record PendingNotification(net.kyori.adventure.text.Component component, int remaining) {

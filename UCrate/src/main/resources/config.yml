@@ -1,0 +1,18 @@
+settings:
+  default-animation: instant
+  require-key: true
+  cooldown-seconds: 0
+  crate-block-material: ENDER_CHEST
+
+storage:
+  type: yaml
+  auto-save-interval: 300
+
+keys:
+  physical:
+    material: TRIPWIRE_HOOK
+    name: "<gold>%crate% Key</gold>"
+    lore:
+      - "<gray>Right-click a %crate% crate to open</gray>"
+      - "<gray>Key ID: %crate_key%</gray>"
+    glow: true

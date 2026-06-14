@@ -123,8 +123,10 @@ public class SkillTreeGui {
                 SkillTreeNode prereq = manager.getNode(prereqId);
                 if (prereq == null) continue;
                 int prereqLevel = data.getSkillLevel(prereqId);
-                boolean met = prereqLevel >= prereq.getMaxLevel();
-                lore.add((met ? "<green>✓" : "<red>✗") + " " + prereq.getDisplayName() + " <gray>Lv." + prereq.getMaxLevel());
+                // Chỉ cần unlocked (level >= 1) — không cần max level
+                boolean met = prereqLevel >= 1;
+                lore.add((met ? "<green>✓" : "<red>✗") + " " + prereq.getDisplayName()
+                        + " <gray>(cần Lv.1+, đang ở Lv." + prereqLevel + ")");
             }
         }
 

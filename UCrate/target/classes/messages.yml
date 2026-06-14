@@ -1,0 +1,44 @@
+prefix:
+  default: "<gradient:#FF6B35:#FFD700>UCrate</gradient> <gray>»</gray>"
+
+general:
+  reloaded: "<prefix> <green>Configuration reloaded successfully.</green>"
+  no-permission: "<prefix> <red>You don't have permission to use this.</red>"
+  player-only: "<prefix> <red>Only players can use this command.</red>"
+  unknown-command: "<prefix> <red>Unknown subcommand. Use /ucrate help</red>"
+  invalid-number: "<prefix> <red>Invalid number: <input></red>"
+  not-found: "<prefix> <red><type> '<value>' not found.</red>"
+  help:
+    - "<prefix> <gold>── UCrate Commands ──</gold>"
+    - "<gold>/ucrate list</gold> <gray>- List all crates</gray>"
+    - "<gold>/ucrate create <id></gold> <gray>- Create new crate at your location</gray>"
+    - "<gold>/ucrate delete <id></gold> <gray>- Delete a crate</gray>"
+    - "<gold>/ucrate open <id></gold> <gray>- Open a crate</gray>"
+    - "<gold>/ucrate key give <player> <crate> <amount></gold> <gray>- Give virtual keys</gray>"
+    - "<gold>/ucrate key take <player> <crate> <amount></gold> <gray>- Take virtual keys</gray>"
+    - "<gold>/ucrate key physical <player> <crate> <amount></gold> <gray>- Give physical keys</gray>"
+    - "<gold>/ucrate editor</gold> <gray>- Open the crate editor GUI</gray>"
+    - "<gold>/ucrate reload</gold> <gray>- Reload config</gray>"
+
+crate:
+  created: "<prefix> <green>Crate '<crate>' created at your location.</green>"
+  deleted: "<prefix> <green>Crate '<crate>' deleted.</green>"
+  exists: "<prefix> <red>Crate '<crate>' already exists.</red>"
+  no-location: "<prefix> <red>You must stand on a block to create a crate.</red>"
+  not-found: "<prefix> <red>Crate '<crate>' not found.</red>"
+  opened: "<prefix> <green>Opening crate '<crate>'...</green>"
+  no-key: "<prefix> <red>You need a <crate> key to open this crate.</red>"
+  no-permission: "<prefix> <red>You don't have permission to open this crate.</red>"
+  on-cooldown: "<prefix> <red>Please wait <seconds>s before opening again.</red>"
+
+key:
+  given: "<prefix> <green>Given <amount> <crate> key(s) to <player>.</green>"
+  taken: "<prefix> <green>Taken <amount> <crate> key(s) from <player>.</green>"
+  received: "<prefix> <green>You received <amount> <crate> key(s).</green>"
+  lost: "<prefix> <red>You lost <amount> <crate> key(s).</red>"
+  not-enough: "<prefix> <red><player> doesn't have enough <crate> keys.</red>"
+  given-physical: "<prefix> <green>Given <amount> physical <crate> key(s) to <player>.</green>"
+
+reward:
+  received: "<prefix> <green>You received <reward>!</green>"
+  broadcast: "<prefix> <gold><player></gold> <gray>won <reward> from a <crate> crate!</gray>"

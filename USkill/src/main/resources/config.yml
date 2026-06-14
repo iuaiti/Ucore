@@ -15,6 +15,15 @@ mana:
   color: "<aqua>"
   empty-color: "<dark_gray>"
 
+  # Số spaces trailing để đẩy HUD về góc trái màn hình.
+  # sendActionBar căn giữa → thêm trailing spaces dài sẽ dịch nội dung sang trái.
+  # Tăng nếu vẫn quá giữa, giảm nếu bị đẩy quá trái. Mặc định 60.
+  hud-padding: 60
+
+  # Số spaces leading để đẩy notification (SP, XP...) sang góc PHẢI màn hình.
+  # Đối xứng với mana HUD bên trái. Mặc định 60.
+  notification-padding: 60
+
   # Message when not enough mana
   no-mana-message: "<red>Not enough mana! Need %s MP"
 

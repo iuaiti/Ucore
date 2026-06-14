@@ -13,37 +13,52 @@ import com.ultra.ucore.skill.SkillTrigger;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Trident;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
-import org.bukkit.entity.Trident;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+import org.bukkit.Material;
 
 import java.util.*;
 
 /**
  * Listener chuyên biệt cho hệ thống Skill & Passive native của UItem.
- * 
- * Ưu điểm so với ExecutableItems:
- * - Toàn bộ logic Java rõ ràng, không script phức tạp.
- * - Cooldown lưu PDC + memory → rất ổn định sau restart.
- * - Folia-safe qua SchedulerUtil.
- * - Dễ mở rộng action/condition.
+ *
+ * Root-cause fix (NPE): skillService được lấy từ UCoreAPI mỗi lần dùng
+ * (lazy-resolve) thay vì cache tại constructor. Điều này tránh NPE khi
+ * USkill chưa gọi UCoreAPI.registerSkillService() tại thời điểm UItem
+ * onEnable() — dù plugin.yml đã khai báo depend: [USkill], đây là lớp
+ * bảo vệ thứ 2 phòng mọi thứ tự load bất ngờ.
  */
 public class UItemSkillListener implements Listener {
 
     private final UItemPlugin plugin;
-    private final SkillService skillService;
+
+    // KHÔNG cache skillService tại constructor — lazy-resolve mỗi lần dùng
+    // để tránh NPE khi USkill chưa register SkillService vào UCoreAPI.
+    // Trả về null nếu chưa sẵn sàng; tất cả callers kiểm tra null trước.
+    private SkillService getSkillService() {
+        try {
+            SkillService svc = UCoreAPI.getSkillService();
+            return svc; // có thể null nếu UCoreServices.skillService() là null
+        } catch (IllegalStateException e) {
+            // UCoreAPI chưa initialize (UCore chưa load) — không crash
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
     // Track item đang cầm để WHILE_HOLDING
     private final Map<UUID, String> lastHeldUItem = new HashMap<>();
@@ -51,29 +66,25 @@ public class UItemSkillListener implements Listener {
     // Reentrancy guard: ngăn DAMAGE action gọi target.damage() → EntityDamageByEntityEvent → vòng lặp vô hạn
     private boolean inDamageProcessing = false;
 
-    // Periodic ticker (chạy mỗi 5 tick ~0.25s, đủ mượt cho hầu hết aura/regen)
+    // Periodic ticker (chạy mỗi 5 tick ~0.25s)
     private ScheduledTask periodicTask;
 
     public UItemSkillListener(UItemPlugin plugin) {
         this.plugin = plugin;
-        this.skillService = UCoreAPI.getSkillService();
         startPeriodicTask();
     }
 
     private void startPeriodicTask() {
         if (periodicTask != null) periodicTask.cancel();
-
         periodicTask = plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, scheduledTask -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 try {
                     tickPlayerPeriodic(p);
                 } catch (Exception e) {
-                    // Không để 1 player làm crash toàn bộ ticker — log lỗi để debug
                     plugin.getLogger().warning("[Skill] Periodic tick error for " + p.getName() + ": " + e.getMessage());
-                    e.printStackTrace();
                 }
             }
-        }, 20L, 5L); // delay 1s, sau đó mỗi 5 tick
+        }, 20L, 5L);
     }
 
     public void shutdown() {
@@ -83,36 +94,39 @@ public class UItemSkillListener implements Listener {
         }
     }
 
-    private void tickPlayerPeriodic(Player player) {
-        // WHILE_HOLDING (main + offhand)
-        checkAndTickHolding(player, player.getInventory().getItemInMainHand(), SkillTrigger.WHILE_HOLDING);
-        checkAndTickHolding(player, player.getInventory().getItemInOffHand(), SkillTrigger.WHILE_HOLDING);
+    // =========================================================
+    // Periodic tick
+    // =========================================================
 
-        // PERIODIC trên mọi item đang cầm/mặc (để đơn giản: chỉ cầm tay chính + giáp)
-        checkAndTickPeriodic(player, player.getInventory().getItemInMainHand());
+    private void tickPlayerPeriodic(Player player) {
+        SkillService svc = getSkillService();
+        if (svc == null) return; // USkill chưa sẵn sàng — bỏ qua tick này
+
+        checkAndTickHolding(svc, player, player.getInventory().getItemInMainHand(), SkillTrigger.WHILE_HOLDING);
+        checkAndTickHolding(svc, player, player.getInventory().getItemInOffHand(), SkillTrigger.WHILE_HOLDING);
+
+        checkAndTickPeriodic(svc, player, player.getInventory().getItemInMainHand());
         for (ItemStack armor : player.getInventory().getArmorContents()) {
             if (armor != null && !armor.getType().isAir()) {
-                checkAndTickPeriodic(player, armor);
+                checkAndTickPeriodic(svc, player, armor);
             }
         }
     }
 
-    private void checkAndTickHolding(Player player, ItemStack item, SkillTrigger trigger) {
+    private void checkAndTickHolding(SkillService svc, Player player, ItemStack item, SkillTrigger trigger) {
         UItemData data = getUItemData(item);
         if (data == null) return;
         List<Skill> skills = SkillDataHelper.getSkills(data);
         if (skills.isEmpty()) return;
-
-        String itemId = data.getId();
-        skillService.tickPeriodicSkills(player, itemId, skills, trigger);
+        svc.tickPeriodicSkills(player, data.getId(), skills, trigger);
     }
 
-    private void checkAndTickPeriodic(Player player, ItemStack item) {
+    private void checkAndTickPeriodic(SkillService svc, Player player, ItemStack item) {
         UItemData data = getUItemData(item);
-        if (data == null || SkillDataHelper.getSkills(data).isEmpty()) return;
-
-        String itemId = data.getId();
-        skillService.tickPeriodicSkills(player, itemId, SkillDataHelper.getSkills(data), SkillTrigger.PERIODIC);
+        if (data == null) return;
+        List<Skill> skills = SkillDataHelper.getSkills(data);
+        if (skills.isEmpty()) return;
+        svc.tickPeriodicSkills(player, data.getId(), skills, SkillTrigger.PERIODIC);
     }
 
     // =========================================================
@@ -121,154 +135,175 @@ public class UItemSkillListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onUItemInteract(UItemInteractEvent event) {
+        SkillService svc = getSkillService();
+        if (svc == null) return;
+
         Player player = event.getPlayer();
         UItemData data = event.getItemData();
-        if (data == null || SkillDataHelper.getSkills(data).isEmpty()) return;
+        if (data == null) return;
+        List<Skill> skills = SkillDataHelper.getSkills(data);
+        if (skills.isEmpty()) return;
 
-        org.bukkit.event.block.Action bukkitAction = event.getAction();
         boolean sneaking = player.isSneaking();
-
-        SkillTrigger trigger = switch (bukkitAction) {
+        SkillTrigger trigger = switch (event.getAction()) {
             case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> sneaking ? SkillTrigger.SHIFT_RIGHT_CLICK : SkillTrigger.RIGHT_CLICK;
-            case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> sneaking ? SkillTrigger.SHIFT_LEFT_CLICK : SkillTrigger.LEFT_CLICK;
+            case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK   -> sneaking ? SkillTrigger.SHIFT_LEFT_CLICK  : SkillTrigger.LEFT_CLICK;
             default -> null;
         };
-
         if (trigger == null) return;
 
-        boolean executed = skillService.executeSkills(player, data.getId(), SkillDataHelper.getSkills(data), trigger, null);
-
-        if (executed && shouldCancel(data, trigger)) {
+        boolean executed = svc.executeSkills(player, data.getId(), skills, trigger, null);
+        if (executed && shouldCancel(skills, trigger)) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDrop(PlayerDropItemEvent event) {
+        SkillService svc = getSkillService();
+        if (svc == null) return;
+
         Player player = event.getPlayer();
         ItemStack item = event.getItemDrop().getItemStack();
         UItemData data = getUItemData(item);
-        if (data == null || SkillDataHelper.getSkills(data).isEmpty()) return;
+        if (data == null) return;
+        List<Skill> skills = SkillDataHelper.getSkills(data);
+        if (skills.isEmpty()) return;
 
-        // Check if this is a throw (has velocity) vs normal drop
         boolean isThrow = event.getItemDrop().getVelocity().lengthSquared() > 0.1;
         SkillTrigger trigger = isThrow ? SkillTrigger.THROW : SkillTrigger.DROP;
 
-        boolean executed = skillService.executeSkills(player, data.getId(), SkillDataHelper.getSkills(data), trigger, null);
-        if (executed && shouldCancel(data, trigger)) {
+        boolean executed = svc.executeSkills(player, data.getId(), skills, trigger, null);
+        if (executed && shouldCancel(skills, trigger)) {
             event.setCancelled(true);
         }
     }
 
     // =========================================================
-    // SHOOT trigger: bow/crossbow/trident (user request: ném đinh ba / bắn cung)
+    // SHOOT: bow / crossbow / trident
     // =========================================================
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBowShoot(EntityShootBowEvent event) {
+        SkillService svc = getSkillService();
+        if (svc == null) return;
         if (!(event.getEntity() instanceof Player player)) return;
+
         ItemStack bow = event.getBow();
         if (bow == null || bow.getType().isAir()) return;
-
         UItemData data = getUItemData(bow);
-        if (data == null || SkillDataHelper.getSkills(data).isEmpty()) return;
+        if (data == null) return;
+        List<Skill> skills = SkillDataHelper.getSkills(data);
+        if (skills.isEmpty()) return;
 
-        boolean executed = skillService.executeSkills(player, data.getId(), SkillDataHelper.getSkills(data), SkillTrigger.SHOOT, null);
-        if (executed && shouldCancel(data, SkillTrigger.SHOOT)) {
+        boolean executed = svc.executeSkills(player, data.getId(), skills, SkillTrigger.SHOOT, null);
+        if (executed && shouldCancel(skills, SkillTrigger.SHOOT)) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onTridentOrProjectileThrow(ProjectileLaunchEvent event) {
+    public void onProjectileLaunch(ProjectileLaunchEvent event) {
+        SkillService svc = getSkillService();
+        if (svc == null) return;
         if (!(event.getEntity().getShooter() instanceof Player player)) return;
 
-        // For trident throws (and potentially other projectile weapons), look at held items.
-        // Prefer main hand, then off hand. We trigger SHOOT on the UItem weapon used to launch.
         ItemStack weapon = player.getInventory().getItemInMainHand();
         UItemData data = getUItemData(weapon);
-
         if (data == null) {
-            // Fallback to offhand (rare for trident/bow but possible)
             weapon = player.getInventory().getItemInOffHand();
             data = getUItemData(weapon);
         }
-
-        // If the projectile is a trident, also try to match a TRIDENT in hand even if not (yet) resolved as UItem above
         if (data == null && event.getEntity() instanceof Trident) {
-            if (weapon != null && weapon.getType() == Material.TRIDENT) {
-                data = getUItemData(weapon);
-            } else {
-                ItemStack off = player.getInventory().getItemInOffHand();
-                if (off != null && off.getType() == Material.TRIDENT) {
-                    data = getUItemData(off);
-                }
-            }
+            ItemStack off = player.getInventory().getItemInOffHand();
+            if (off != null && off.getType() == Material.TRIDENT) data = getUItemData(off);
         }
+        if (data == null) return;
+        List<Skill> skills = SkillDataHelper.getSkills(data);
+        if (skills.isEmpty()) return;
 
-        if (data == null || SkillDataHelper.getSkills(data).isEmpty()) return;
-
-        boolean executed = skillService.executeSkills(player, data.getId(), SkillDataHelper.getSkills(data), SkillTrigger.SHOOT, null);
-        if (executed && shouldCancel(data, SkillTrigger.SHOOT)) {
+        boolean executed = svc.executeSkills(player, data.getId(), skills, SkillTrigger.SHOOT, null);
+        if (executed && shouldCancel(skills, SkillTrigger.SHOOT)) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onSwap(PlayerSwapHandItemsEvent event) {
+        SkillService svc = getSkillService();
+        if (svc == null) return;
+
         Player player = event.getPlayer();
         ItemStack main = player.getInventory().getItemInMainHand();
         UItemData data = getUItemData(main);
-        if (data != null && !SkillDataHelper.getSkills(data).isEmpty()) {
-            boolean executed = skillService.executeSkills(player, data.getId(), SkillDataHelper.getSkills(data), SkillTrigger.SWAP_HAND, null);
-            if (executed && shouldCancel(data, SkillTrigger.SWAP_HAND)) {
-                event.setCancelled(true);
-            }
+        if (data == null) return;
+        List<Skill> skills = SkillDataHelper.getSkills(data);
+        if (skills.isEmpty()) return;
+
+        boolean executed = svc.executeSkills(player, data.getId(), skills, SkillTrigger.SWAP_HAND, null);
+        if (executed && shouldCancel(skills, SkillTrigger.SWAP_HAND)) {
+            event.setCancelled(true);
         }
     }
 
     // =========================================================
-    // Combat
+    // BREAK_BLOCK
+    // =========================================================
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockBreak(BlockBreakEvent event) {
+        SkillService svc = getSkillService();
+        if (svc == null) return;
+
+        Player player = event.getPlayer();
+        ItemStack tool = player.getInventory().getItemInMainHand();
+        UItemData data = getUItemData(tool);
+        if (data == null) return;
+        List<Skill> skills = SkillDataHelper.getSkills(data);
+        if (skills.isEmpty()) return;
+
+        svc.executeSkills(player, data.getId(), skills, SkillTrigger.BREAK_BLOCK, null);
+    }
+
+    // =========================================================
+    // Combat: HIT + TAKE_DAMAGE
     // =========================================================
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent event) {
-        // Reentrancy guard: DAMAGE action gọi target.damage() sinh ra EntityDamageByEntityEvent mới,
-        // nếu không guard sẽ gây đệ quy vô hạn (HIT → DAMAGE → HIT → DAMAGE → ...)
         if (inDamageProcessing) return;
+        SkillService svc = getSkillService();
+        if (svc == null) return;
+
         inDamageProcessing = true;
         try {
-            // HIT: damager dùng UItem
+            // HIT
             if (event.getDamager() instanceof Player damager) {
                 ItemStack weapon = damager.getInventory().getItemInMainHand();
                 UItemData data = getUItemData(weapon);
-                if (data != null && !SkillDataHelper.getSkills(data).isEmpty()) {
-                    LivingEntity victim = (event.getEntity() instanceof LivingEntity le) ? le : null;
-                    skillService.executeSkills(damager, data.getId(), SkillDataHelper.getSkills(data), SkillTrigger.HIT, victim);
+                if (data != null) {
+                    List<Skill> skills = SkillDataHelper.getSkills(data);
+                    if (!skills.isEmpty()) {
+                        LivingEntity victim = (event.getEntity() instanceof LivingEntity le) ? le : null;
+                        svc.executeSkills(damager, data.getId(), skills, SkillTrigger.HIT, victim);
+                    }
                 }
             }
 
-            // TAKE_DAMAGE: victim đang cầm hoặc mặc UItem có skill
+            // TAKE_DAMAGE
             if (event.getEntity() instanceof Player victim) {
-                // held
                 ItemStack held = victim.getInventory().getItemInMainHand();
                 UItemData heldData = getUItemData(held);
                 if (heldData != null) {
-                    List<Skill> heldSk = SkillDataHelper.getSkills(heldData);
-                    if (!heldSk.isEmpty()) {
-                        skillService.executeSkills(victim, heldData.getId(), heldSk, SkillTrigger.TAKE_DAMAGE, null);
-                    }
+                    List<Skill> sk = SkillDataHelper.getSkills(heldData);
+                    if (!sk.isEmpty()) svc.executeSkills(victim, heldData.getId(), sk, SkillTrigger.TAKE_DAMAGE, null);
                 }
-                // armor
                 for (ItemStack armor : victim.getInventory().getArmorContents()) {
                     if (armor == null || armor.getType().isAir()) continue;
                     UItemData ad = getUItemData(armor);
-                    if (ad != null) {
-                        List<Skill> aSkills = SkillDataHelper.getSkills(ad);
-                        if (!aSkills.isEmpty()) {
-                            skillService.executeSkills(victim, ad.getId(), aSkills, SkillTrigger.TAKE_DAMAGE, null);
-                        }
-                    }
+                    if (ad == null) continue;
+                    List<Skill> sk = SkillDataHelper.getSkills(ad);
+                    if (!sk.isEmpty()) svc.executeSkills(victim, ad.getId(), sk, SkillTrigger.TAKE_DAMAGE, null);
                 }
             }
         } finally {
@@ -277,37 +312,71 @@ public class UItemSkillListener implements Listener {
     }
 
     // =========================================================
-    // Equip
+    // KILL trigger
+    // =========================================================
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onKill(EntityDamageByEntityEvent event) {
+        // Only fire KILL if the entity is about to die
+        if (!(event.getEntity() instanceof LivingEntity victim)) return;
+        if (victim.getHealth() - event.getFinalDamage() > 0) return;
+        if (!(event.getDamager() instanceof Player killer)) return;
+
+        SkillService svc = getSkillService();
+        if (svc == null) return;
+
+        ItemStack weapon = killer.getInventory().getItemInMainHand();
+        UItemData data = getUItemData(weapon);
+        if (data == null) return;
+        List<Skill> skills = SkillDataHelper.getSkills(data);
+        if (skills.isEmpty()) return;
+
+        svc.executeSkills(killer, data.getId(), skills, SkillTrigger.KILL, victim);
+    }
+
+    // =========================================================
+    // EQUIP / UNEQUIP
     // =========================================================
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEquip(UItemEquipEvent event) {
+        SkillService svc = getSkillService();
+        if (svc == null) return;
+
         Player p = event.getPlayer();
         UItemData data = event.getItemData();
-        if (data == null || SkillDataHelper.getSkills(data).isEmpty()) return;
+        if (data == null) return;
+        List<Skill> skills = SkillDataHelper.getSkills(data);
+        if (skills.isEmpty()) return;
 
         SkillTrigger trig = event.isEquipping() ? SkillTrigger.EQUIP : SkillTrigger.UNEQUIP;
-        skillService.executeSkills(p, data.getId(), SkillDataHelper.getSkills(data), trig, null);
+        svc.executeSkills(p, data.getId(), skills, trig, null);
     }
 
     // =========================================================
-    // Held tracking for WHILE_HOLDING (chuyển item)
+    // Held tracking
     // =========================================================
 
     @EventHandler
     public void onHeldChange(PlayerItemHeldEvent event) {
+        SkillService svc = getSkillService();
         Player p = event.getPlayer();
         ItemStack newItem = p.getInventory().getItem(event.getNewSlot());
         String newId = getUItemId(newItem);
 
-        String oldId = lastHeldUItem.get(p.getUniqueId());
-        if (!Objects.equals(oldId, newId) && newId != null) {
-            // Trigger WHILE_HOLDING ngay khi cầm lên (nếu có skill loại này)
-            UItemData data = getUItemData(newItem);
-            if (data != null) {
-                skillService.executeSkills(p, newId, SkillDataHelper.getSkills(data), SkillTrigger.WHILE_HOLDING, null);
+        if (svc != null && newId != null) {
+            String oldId = lastHeldUItem.get(p.getUniqueId());
+            if (!Objects.equals(oldId, newId)) {
+                UItemData data = getUItemData(newItem);
+                if (data != null) {
+                    List<Skill> skills = SkillDataHelper.getSkills(data);
+                    if (!skills.isEmpty()) {
+                        svc.executeSkills(p, newId, skills, SkillTrigger.WHILE_HOLDING, null);
+                    }
+                }
             }
         }
+
         if (newId != null) lastHeldUItem.put(p.getUniqueId(), newId);
         else lastHeldUItem.remove(p.getUniqueId());
     }
@@ -315,7 +384,8 @@ public class UItemSkillListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         lastHeldUItem.remove(event.getPlayer().getUniqueId());
-        skillService.onPlayerQuit(event.getPlayer());
+        SkillService svc = getSkillService();
+        if (svc != null) svc.onPlayerQuit(event.getPlayer());
     }
 
     // =========================================================
@@ -332,8 +402,7 @@ public class UItemSkillListener implements Listener {
         return UItemAPI.get().getUItemId(item).orElse(null);
     }
 
-    private boolean shouldCancel(UItemData data, SkillTrigger trigger) {
-        List<Skill> sk = SkillDataHelper.getSkills(data);
-        return sk.stream().anyMatch(s -> s.getTrigger() == trigger && s.isCancelEvent());
+    private boolean shouldCancel(List<Skill> skills, SkillTrigger trigger) {
+        return skills.stream().anyMatch(s -> s.getTrigger() == trigger && s.isCancelEvent());
     }
 }

@@ -53,14 +53,13 @@ public class PlayerSkillData {
     public boolean canUpgrade(SkillTreeNode node, SkillTreeManager manager) {
         int currentLevel = getSkillLevel(node.getId());
         if (currentLevel >= node.getMaxLevel()) return false;
-        int nextLevel = currentLevel;
-        int cost = node.getCost(nextLevel);
+        int cost = node.getCost(currentLevel);
         if (skillPoints < cost) return false;
 
+        // Prerequisite chỉ cần đã unlock (level >= 1), không cần phải max level
+        // → player tự do nâng cấp bất kỳ node nào đã mở prerequisite
         for (String prereqId : node.getPrerequisites()) {
-            SkillTreeNode prereq = manager.getNode(prereqId);
-            if (prereq == null) continue;
-            if (getSkillLevel(prereqId) < prereq.getMaxLevel()) return false;
+            if (getSkillLevel(prereqId) < 1) return false;
         }
 
         return true;
